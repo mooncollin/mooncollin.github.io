@@ -23,5 +23,6 @@ def generate_templates(dir: str, ignore_files: Sequence = ()):
                     template.stream().dump(out_f)
 
 generate_templates('templates', (
-    'templates/base.html'
+    'templates/base.html',
+    'templates/ss_versus_private_card.html'
 ))
