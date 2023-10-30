@@ -1,0 +1,2001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Security Versus Private Security</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <style>
+        .nav-link
+        {
+            color: black;
+        }
+        .nav-link:hover, .activ
+        {
+            color: #6600ea;
+        }
+
+        h2.article-header
+        {
+            color: #2f54a4;
+        }
+
+        h3.article-header
+        {
+            color: #509cda;
+        }
+
+        h4.article-header
+        {
+            color: #39395b;
+        }
+
+        .figure-footer
+        {
+            font-size: small;
+            font-style: italic;
+            color: #39395b;
+        }
+    </style>
+</head>
+<body style="font-family: 'Garamond'">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <header class="text-center py-5">
+        <h2 style="font-size: 48px; font-weight: bold; text-shadow: 1px 1px #000000;"><code class="text-black"><span style="color: #0d6efd">{</span><span style="color: #6f42c1">Code</span>, <span style="color: #007B5E">Capitalism</span>, and <span style="color: #FFD700">Cooperation</span><span style="color: #0d6efd">}</span></code></h2>
+    </header>
+    <nav class="navbar navbar-expand-md">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse row" id="navbarNav">
+            <ul class="navbar-nav d-md-none">
+                <li class="nav-item">
+                    <a class="nav-link px-5" href="index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-5" href="articles.html">Articles</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav d-none d-md-flex">
+                <li class="border-top border-bottom border-black col-5"></li>
+                <li class="nav-item border-start border-top border-bottom border-black col-1">
+                    <a class="nav-link  text-center" href="index.html">Home</a>
+                </li>
+                <li class="nav-item border-end border-start border-top border-bottom border-black col-1">
+                    <a class="nav-link  text-center" href="articles.html">Articles</a>
+                </li>
+                <li class="border-top border-bottom border-black col-5"></li>
+            </ul>
+        </div>
+    </nav>
+<section class="container my-5">
+    <h1 class="text-center">Social Security Versus Private Security</h1>
+    <div class="mb-5 text-center"><small>October 29th, 2023</small></div>
+    <h2 class="article-header">Abstract</h2>
+    <p>
+        We investigated the Old-Age and Survivors Insurance (OASI) and Disability Insurance (DI) programs
+        within the Social Security Administration for their benefits and sustainability to eligible participants. We
+        contrast these benefits to products offered by private products to create a cost-benefit analysis based on
+        income levels. Our analysis finds that while using private-only solutions to Social Security, 104 scenarios
+        were tested, and only 6.45% survived an equivalent withdrawal rate that matched the corresponding Social Security
+        Old-Age benefits.
+    </p>
+    <h2 class="article-header">What is Social Security?</h2>
+    <p>
+        Social Security is a welfare program in the United States. It was first established in 1939 to
+        provide private life insurance for families which lost their head of household. After 1939, several
+        additions to the Social Security program were added to provide additional benefits for the disabled,
+        health needs, and supplemental income for the retired elderly. This program today serves 1 in 5
+        Americans, which is about 63 million beneficiaries.
+    </p>
+    <img src="images/ss_history.png">
+    <h2 class="article-header">How is Social Security Financed?</h2>
+    <p>
+        Social Security is financed through a payroll tax. Employers and employees each pay 6.2% of gross wages
+        up to a taxable maximum of $160,200, while the self-employed pay the full 12.4%.
+    </p>
+    <p>
+        In 2021, $841.38 billion (92.6%) of total Old-Age and Survivors Insurance came from payroll taxes. The
+        remainder income was interest earnings of $67.47 billion (7.4%) (2022 SSA Annual Report).
+    </p>
+    <p>
+        In 2021, $142.37 billion (98.1%) of total Disability Insurance came from payroll taxes. The remainder
+        income was interest earnings of $2.64 billion (1.9%) (2022 SSA Annual Report).
+    </p>
+    <h2 class="article-header">What are the costs of Social Security?</h2>
+    <p>
+        In 2021, net costs for monthly benefits for Old-Age and Survivors Insurance were $997.93 billion
+        (99.5%), while net administration costs were $4.01 billion (0.5%) (2022 SSA Annual Report).
+    </p>
+    <p>
+        In 2021, net costs for monthly benefits for Disability Insurance were $140.62 billion (98.3%), while net
+        administration costs were $2.48 billion (1.7%) (2022 SSA Annual Report).
+    </p>
+    <p>
+        In both accounts, inflows of payroll taxes funds make up almost all revenues. With a 1.9% (OASI) and 1%
+        (DI) adjusted interest yield, income from investing activities makes up very little to the revenues of the
+        program. Administrators of this program have a focus on sustaining inflows into the trust rather than
+        using the funds' capital itself to grow revenue.
+    </p>
+    <h2 class="article-header">Social Security Operations</h2>
+    <h3 class="article-header">Eligibility for Old-Age and Survivors Benefits</h3>
+    <p>
+        An individual is eligible for Old-Age benefits once they are 62 years or older and have worked and paid Social
+        Security taxes for at least 10 years (SSA). Those eligible for Old-Age but making more than $56,520 in
+        taxable income will have their benefits reduced by $1 for every $3 over the limit. Those eligible for
+        Survivor's but making more than $21,240 in taxable income will have their benefits reduced by $1 for
+        every $2 over the limit.
+    </p>
+    <p>
+        One can earn a maximum of four credits each year, with a total of 40 credits to qualify for benefits. For
+        2023, each credit costs $1,640.
+    </p>
+    <p>
+        Recent reports show that benefits will need to be cut by about 24.9% by 2034 to keep the program from
+        becoming insolvent (2022 SSA Annual Report). We assume in our analysis that this action is to happen.
+    </p>
+    <p>
+        Survivors' insurance lasts differently depending on the beneficiaries
+        <ul>
+            <li>Widows and Widowers</li>
+            <p>Lasts for life, starting at 60 - or 50 if disabled, or unless Old-Age payments are larger.</p>
+            <li>Mothers and Fathers</li>
+            <p>Lasts until they no longer have a dependent child younger than 16, or retirement age.</p>
+            <li>Children</li>
+            <p>Until the child turns 18.</p>
+            <li>Parents</li>
+            <p>Lasts for life, starting at 62, if the deceased worker supported at least half support.</p>
+        </ul>
+    </p>
+    <h3 class="article-header">Eligibility for Disability Benefits</h3>
+    <p>
+        The Social Security Administration determines whether you qualify for disability insurance based on
+        internal review. Although this review is on a per-case basis, the SSA does give some guidelines to their
+        process (SSA):
+    </p>
+    <ul>
+        <li>
+            The disability significantly limits your ability to do basic work activities - such as lifting,
+            standing, walking, sitting, and remembering - for at least 12 months. If so then,
+        </li>
+        <li>
+            A panel of experts finds if the disability matches a listing of disabilities and severities. If the
+            experts agree that the disability and severity both match a current listing of disabilities and
+            severities then,
+        </li>
+        <li>
+            The administration determines if the disability limits the ability to do any of past work
+            experiences. If so then,
+        </li>
+        <li>
+            The administration determines if there exists any other kind of work that could be done
+            regardless of the disability. If so, then disability insurance is granted.
+        </li>
+    </ul>
+    <p>
+        Disability benefits are not eligible for those currently confined for a crime, not standing trial, or
+        registered as not guilty by reason of insanity caused by mental illness. Those eligible from a disability
+        and able to work but making more than $1,470 per month ($17,640 in taxable income annually) are
+        ineligible to continue benefits (SSA). Approximately 63% of all disability claims are denied (SSA, 2018).
+    </p>
+    <p>
+        Disability insurance pays for as long as you're disabled, but will stop once retirement age is achieved, in
+        which Old-Age benefits take over.
+    </p>
+    <h2 class="article-header">Private Options</h2>
+    <h3 class="article-header">Old-Age Equivalent</h3>
+    <p>
+        Equivalent products to Old-Age Social Security Insurance could be a:
+    </p>
+    <ul>
+        <li>401K</li>
+        <li>IRA</li>
+        <li>Taxable Brokerage</li>
+        <li>Annuity</li>
+    </ul>
+    <h4 class="article-header">401K</h4>
+    <p>
+        A 401K is a tax-sheltered retirement account. This account is funded by pre-tax employment income,
+        which reduces overall taxable income. In 2023, contributions are limited to $22,500. The account funds
+        can be withdrawn at age 59&#189; without penalty, with its withdrawals counting as income.
+    </p>
+    <h4 class="article-header">IRA</h4>
+    <p>
+        A traditional IRA is similar to a 401K, but is used by those who do not have an employer sponsored 401K
+        plan. Contributions are limited to $6,500.
+    </p>
+    <p>
+        A Roth IRA is funded by post-tax employment income. In 2023, contributions are limited to $6,500. The
+        account funds can be withdrawn at age 59&#189; without penalty, with its withdrawals being tax-free.
+        Withdrawals on principle can happen any time without penalty. There are income limits to contributing
+        to this account.
+    </p>
+    <h4 class="article-header">Taxable Brokerage</h4>
+    <p>
+        A taxable brokerage is an investment account that can be funded by any post-tax contributions. There
+        are no income limits, contribution limits, withdrawal limits or penalties. Short-term gains and non-
+        qualified dividends are recognized as income, while long-term gains and qualified dividends are taxed as
+        capital gains.
+    </p>
+    <h4 class="article-header">Annuity</h4>
+    <p>
+        Annuities are financial products which guarantee a certain amount of monthly income. These often
+        require an up-front cost, and provide income for a certain number of years, often sold at various yields.
+    </p>
+    <p>
+        We refrain from mentioning and analyzing pension plans, as those products are not guarantees and
+        ownership of retirement savings.
+    </p>
+    <p>
+        Our analysis will use a brokerage account for the retirement savings. This analysis does not consider
+        taxes from investing activities, but our numbers do assume an after-tax contribution. Pre-tax
+        contribution accounts may have higher end portfolios than our analysis.
+    </p>
+    <h3 class="article-header">Survivors Insurance Equivalent</h3>
+    <p>Equivalent products to Survivors Social Security Insurance would be private term life insurance.</p>
+    <p>
+        Private term life insurance pays immediately after death, so it is not exactly equivalent to Survivors
+        Insurance, but this should be regarded as a benefit to the private product.
+    </p>
+    <h3 class="article-header">Disability Insurance Equivalent</h3>
+    <p>
+        Equivalent products to Disability Social Security Insurance would be private long-term and short-term
+        disability insurance.
+    </p>
+    <p>Private disability insurance pays immediately after a disability, and comes in two forms:</p>
+    <ul>
+        <li>Short-term</li>
+        <li>Long-term</li>
+    </ul>
+    <p>
+        Since Social Security Disability Insurance pays for as long as one is disabled, we will use long-term
+        disability insurance as our private product of choice.
+    </p>
+    <h2 class="article-header">Eliminating Social Security</h2>
+    <p>
+        This analysis assumes an elimination of Social Security taxes and those tax dollars to go back into wages.
+        An elimination of the Social Security program will eliminate these taxes and administrative costs:
+    </p>
+    <ul>
+        <li>12.4% of employees and employer shared wage costs, assumed to go to back into wages.</li>
+        <li>0.5% OASI administrative costs.</li>
+        <li>1.7% DI administrative costs.</li>
+    </ul>
+    <p>We will not explore administrative cost savings related to employers not needing to collect these taxes.</p>
+    <h2 class="article-header">Main Analysis</h2>
+    <p>
+        Our analysis will compare Social Security monthly income benefits against a well-structured set of
+        private products across age and income sets. This way we can see the impact on sooner versus later
+        savings and lower versus higher income individuals. We will assume a retirement age of 62 for our
+        calculations, as that is the minimum to receive benefits for Social Security.
+    </p>
+    <p>
+        This analysis will not make claims on whether benefits are sufficient for a given age, but rather find
+        private solutions that match benefits best.
+    </p>
+    <h3 class="article-header">Old-Age Monthly Benefits</h3>
+    <p>
+        We assume a worker starts at a given age, making a given amount of earnings until retirement at age 62. All
+        numbers calculated using the Social Security Benefit Calculator (SS Calculator). It should be noted that
+        the Age column represents those who started working (paying into Social Security) at that age, not those
+        who are currently at that age.
+    </p>
+    <p>
+        Due to insolvency of Old-Age benefits in 2034 and official reporting to its solutions, we will assume
+        retirements after 2035 have their benefits cut by 24.9%.
+    </p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Monthly Benefits</th>
+                <th scope="col">Age</th>
+                <th scope="col">25</th>
+                <th scope="col">30</th>
+                <th scope="col">35</th>
+                <th scope="col">40</th>
+                <th scope="col">45</th>
+                <th scope="col">50</th>
+            </tr>
+        </thead>
+        <thead>
+            <tr>
+                <th scope="row">Annual Earnings</th>
+                <th colspan="7" class="bg-secondary-subtle"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">$5,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$678</td>
+                <td>$534</td>
+                <td>$380</td>
+                <td>$262</td>
+                <td>N/A</td>
+                <td>N/A</td>
+            </tr>
+            <tr>
+                <th scope="row">$10,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,358</td>
+                <td>$1,069</td>
+                <td>$761</td>
+                <td>$524</td>
+                <td>$342</td>
+                <td>$205</td>
+            </tr>
+            <tr>
+                <th scope="row">$15,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$2,037</td>
+                <td>$1,603</td>
+                <td>$1,142</td>
+                <td>$787</td>
+                <td>$514</td>
+                <td>$308</td>
+            </tr>
+            <tr>
+                <th scope="row">$20,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$2,280</td>
+                <td>$1,865</td>
+                <td>$1,470</td>
+                <td>$1,050</td>
+                <td>$686</td>
+                <td>$411</td>
+            </tr>
+            <tr>
+                <th scope="row">$25,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$2,521</td>
+                <td>$2,055</td>
+                <td>$1,606</td>
+                <td>$1,249</td>
+                <td>$858</td>
+                <td>$513</td>
+            </tr>
+            <tr>
+                <th scope="row">$30,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$2,763</td>
+                <td>$2,245</td>
+                <td>$1,742</td>
+                <td>$1,342</td>
+                <td>$1,022</td>
+                <td>$616</td>
+            </tr>
+            <tr>
+                <th scope="row">$35,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$3,004</td>
+                <td>$2,435</td>
+                <td>$1,877</td>
+                <td>$1,435</td>
+                <td>$1,083</td>
+                <td>$719</td>
+            </tr>
+            <tr>
+                <th scope="row">$40,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$3,246</td>
+                <td>$2,625</td>
+                <td>$2,013</td>
+                <td>$1,529</td>
+                <td>$1,145</td>
+                <td>$822</td>
+            </tr>
+            <tr>
+                <th scope="row">$45,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$3,488</td>
+                <td>$2,815</td>
+                <td>$2,148</td>
+                <td>$1,622</td>
+                <td>$1,205</td>
+                <td>$877</td>
+            </tr>
+            <tr>
+                <th scope="row">$50,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$3,729</td>
+                <td>$3,006</td>
+                <td>$2,283</td>
+                <td>$1,715</td>
+                <td>$1,266</td>
+                <td>$914</td>
+            </tr>
+            <tr>
+                <th scope="row">$60,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$4,212</td>
+                <td>$3,386</td>
+                <td>$2,554</td>
+                <td>$1,902</td>
+                <td>$1,388</td>
+                <td>$987</td>
+            </tr>
+            <tr>
+                <th scope="row">$70,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$4,695</td>
+                <td>$3,766</td>
+                <td>$2,825</td>
+                <td>$2,089</td>
+                <td>$1,510</td>
+                <td>$1,060</td>
+            </tr>
+            <tr>
+                <th scope="row">$80,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$5,177</td>
+                <td>$4,146</td>
+                <td>$3,096</td>
+                <td>$2,276</td>
+                <td>$1,632</td>
+                <td>$1,133</td>
+            </tr>
+            <tr>
+                <th scope="row">$90,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$5,660</td>
+                <td>$4,526</td>
+                <td>$3,367</td>
+                <td>$2,463</td>
+                <td>$1,754</td>
+                <td>$1,206</td>
+            </tr>
+            <tr>
+                <th scope="row">$100,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$5,900</td>
+                <td>$4,838</td>
+                <td>$3,637</td>
+                <td>$2,650</td>
+                <td>$1,876</td>
+                <td>$1,280</td>
+            </tr>
+            <tr>
+                <th scope="row">$120,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$6,353</td>
+                <td>$5,195</td>
+                <td>$4,094</td>
+                <td>$3,023</td>
+                <td>$2,120</td>
+                <td>$1,425</td>
+            </tr>
+            <tr>
+                <th scope="row">$150,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$7,030</td>
+                <td>$5,727</td>
+                <td>$4,474</td>
+                <td>$3,476</td>
+                <td>$2,484</td>
+                <td>$1,643</td>
+            </tr>
+            <tr>
+                <th scope="row">$160,200+</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$7,254</td>
+                <td>$5,903</td>
+                <td>$4,598</td>
+                <td>$3,561</td>
+                <td>$2,601</td>
+                <td>$1,712</td>
+            </tr>
+        </tbody>
+    </table>
+    <p class="figure-footer">Table 1: Old-Age Social Security Monthly Benefits</p>
+    <p><small>N/A - Not enough credits available to be eligbile for benefits</small></p>
+    <h3 class="article-header">Disability Insurance</h3>
+    <p>
+        Assuming starting work at least one year at a given age, making a given amount of earnings, until
+        retirement at age 62. All numbers calculated using the Social Security Benefit Calculator (SS Calculator).
+        All numbers are inflated adjusted. It should be noted that the Age column represents those who started
+        working (paying into Social Security) at that age, not those who are currently at that age.
+    </p>
+    <p>
+        Due to insolvency of Disability benefits in 2034 and official reporting to its solutions, we will assume
+        disability insurance will have their benefits cut by 24.9%.
+    </p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Monthly Benefits</th>
+                <th scope="col">Age</th>
+                <th scope="col">25</th>
+                <th scope="col">30</th>
+                <th scope="col">35</th>
+                <th scope="col">40</th>
+                <th scope="col">45</th>
+                <th scope="col">50</th>
+            </tr>
+        </thead>
+        <thead>
+            <tr>
+                <th scope="row">Annual Earnings</th>
+                <th colspan="7" class="bg-secondary-subtle"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">$5,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$93</td>
+                <td>$46</td>
+                <td>$30</td>
+                <td>$23</td>
+                <td>N/A</td>
+                <td>N/A</td>
+            </tr>
+            <tr>
+                <th scope="row">$10,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$187</td>
+                <td>$93</td>
+                <td>$62</td>
+                <td>$46</td>
+                <td>$36</td>
+                <td>$30</td>
+            </tr>
+            <tr>
+                <th scope="row">$15,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$280</td>
+                <td>$140</td>
+                <td>$93</td>
+                <td>$70</td>
+                <td>$55</td>
+                <td>$46</td>
+            </tr>
+            <tr>
+                <th scope="row">$20,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$374</td>
+                <td>$187</td>
+                <td>$124</td>
+                <td>$93</td>
+                <td>$74</td>
+                <td>$62</td>
+            </tr>
+            <tr>
+                <th scope="row">$25,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$468</td>
+                <td>$234</td>
+                <td>$155</td>
+                <td>$117</td>
+                <td>$93</td>
+                <td>$77</td>
+            </tr>
+            <tr>
+                <th scope="row">$30,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$562</td>
+                <td>$280</td>
+                <td>$187</td>
+                <td>$140</td>
+                <td>$112</td>
+                <td>$93</td>
+            </tr>
+            <tr>
+                <th scope="row">$35,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$656</td>
+                <td>$327</td>
+                <td>$218</td>
+                <td>$163</td>
+                <td>$130</td>
+                <td>$108</td>
+            </tr>
+            <tr>
+                <th scope="row">$40,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$749</td>
+                <td>$374</td>
+                <td>$249</td>
+                <td>$187</td>
+                <td>$149</td>
+                <td>$124</td>
+            </tr>
+            <tr>
+                <th scope="row">$45,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$843</td>
+                <td>$421</td>
+                <td>$280</td>
+                <td>$210</td>
+                <td>$168</td>
+                <td>$140</td>
+            </tr>
+            <tr>
+                <th scope="row">$50,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$936</td>
+                <td>$468</td>
+                <td>$312</td>
+                <td>$234</td>
+                <td>$187</td>
+                <td>$155</td>
+            </tr>
+            <tr>
+                <th scope="row">$60,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,046</td>
+                <td>$562</td>
+                <td>$374</td>
+                <td>$280</td>
+                <td>$225</td>
+                <td>$187</td>
+            </tr>
+            <tr>
+                <th scope="row">$70,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,113</td>
+                <td>$656</td>
+                <td>$437</td>
+                <td>$327</td>
+                <td>$261</td>
+                <td>$218</td>
+            </tr>
+            <tr>
+                <th scope="row">$80,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,179</td>
+                <td>$749</td>
+                <td>$499</td>
+                <td>$374</td>
+                <td>$299</td>
+                <td>$249</td>
+            </tr>
+            <tr>
+                <th scope="row">$90,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,246</td>
+                <td>$843</td>
+                <td>$562</td>
+                <td>$421</td>
+                <td>$337</td>
+                <td>$280</td>
+            </tr>
+            <tr>
+                <th scope="row">$100,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,313</td>
+                <td>$936</td>
+                <td>$624</td>
+                <td>$468</td>
+                <td>$374</td>
+                <td>$312</td>
+            </tr>
+            <tr>
+                <th scope="row">$120,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,446</td>
+                <td>$1,046</td>
+                <td>$749</td>
+                <td>$562</td>
+                <td>$450</td>
+                <td>$374</td>
+            </tr>
+            <tr>
+                <th scope="row">$150,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,626</td>
+                <td>$1,136</td>
+                <td>$918</td>
+                <td>$688</td>
+                <td>$550</td>
+                <td>$459</td>
+            </tr>
+            <tr>
+                <th scope="row">$160,200+</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,626</td>
+                <td>$1,136</td>
+                <td>$918</td>
+                <td>$688</td>
+                <td>$550</td>
+                <td>$459</td>
+            </tr>
+        </tbody>
+    </table>
+    <p class="figure-footer">Table 2: Social Security Disability Insurance Benefits</p>
+    <p><small>N/A - Not enough credits available to be eligbile for benefits</small></p>
+    <h3 class="article-header">Survivors Insurance</h3>
+    <p>
+        Assuming starting work at least one year at a given age, making a given amount of earnings, until
+        retirement at age 62. All numbers calculated using the Social Security Benefit Calculator (SS Calculator).
+        All numbers are inflated adjusted. It should be noted that the Age column represents those who started
+        working (paying into Social Security) at that age, not those who are currently at that age.
+    </p>
+    <p>
+        These estimates include both benefits for a child and a spouse who qualifies for survivors insurance.
+    </p>
+    <p>
+        Due to insolvency of Survivor benefits in 2034 and official reporting to its solutions, we will assume
+        survivors insurance will have their benefits cut by 24.9%.
+    </p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Monthly Benefits</th>
+                <th scope="col">Age</th>
+                <th scope="col">25</th>
+                <th scope="col">30</th>
+                <th scope="col">35</th>
+                <th scope="col">40</th>
+                <th scope="col">45</th>
+                <th scope="col">50</th>
+            </tr>
+        </thead>
+        <thead>
+            <tr>
+                <th scope="row">Annual Earnings</th>
+                <th colspan="7" class="bg-secondary-subtle"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">$5,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$304</td>
+                <td>$151</td>
+                <td>$68</td>
+                <td>$43</td>
+                <td>N/A</td>
+                <td>N/A</td>
+            </tr>
+            <tr>
+                <th scope="row">$10,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$609</td>
+                <td>$304</td>
+                <td>$135</td>
+                <td>$86</td>
+                <td>$63</td>
+                <td>$50</td>
+            </tr>
+            <tr>
+                <th scope="row">$15,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$914</td>
+                <td>$456</td>
+                <td>$203</td>
+                <td>$130</td>
+                <td>$96</td>
+                <td>$76</td>
+            </tr>
+            <tr>
+                <th scope="row">$20,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,218</td>
+                <td>$609</td>
+                <td>$270</td>
+                <td>$173</td>
+                <td>$128</td>
+                <td>$101</td>
+            </tr>
+            <tr>
+                <th scope="row">$25,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,511</td>
+                <td>$761</td>
+                <td>$338</td>
+                <td>$217</td>
+                <td>$159</td>
+                <td>$127</td>
+            </tr>
+            <tr>
+                <th scope="row">$30,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,620</td>
+                <td>$914</td>
+                <td>$405</td>
+                <td>$261</td>
+                <td>$192</td>
+                <td>$151</td>
+            </tr>
+            <tr>
+                <th scope="row">$35,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,728</td>
+                <td>$1,065</td>
+                <td>$744</td>
+                <td>$304</td>
+                <td>$224</td>
+                <td>$177</td>
+            </tr>
+            <tr>
+                <th scope="row">$40,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,836</td>
+                <td>$1,218</td>
+                <td>$541</td>
+                <td>$347</td>
+                <td>$257</td>
+                <td>$203</td>
+            </tr>
+            <tr>
+                <th scope="row">$45,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,945</td>
+                <td>$1,370</td>
+                <td>$609</td>
+                <td>$392</td>
+                <td>$288</td>
+                <td>$228</td>
+            </tr>
+            <tr>
+                <th scope="row">$50,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$2,053</td>
+                <td>$1,511</td>
+                <td>$676</td>
+                <td>$435</td>
+                <td>$320</td>
+                <td>$254</td>
+            </tr>
+            <tr>
+                <th scope="row">$60,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$2,377</td>
+                <td>$1,620</td>
+                <td>$811</td>
+                <td>$521</td>
+                <td>$385</td>
+                <td>$304</td>
+            </tr>
+            <tr>
+                <th scope="row">$70,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$2,770</td>
+                <td>$1,728</td>
+                <td>$948</td>
+                <td>$609</td>
+                <td>$448</td>
+                <td>$355</td>
+            </tr>
+            <tr>
+                <th scope="row">$80,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$3,163</td>
+                <td>$1,836</td>
+                <td>$1,083</td>
+                <td>$695</td>
+                <td>$513</td>
+                <td>$405</td>
+            </tr>
+            <tr>
+                <th scope="row">$90,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$3,556</td>
+                <td>$1,945</td>
+                <td>$1,218</td>
+                <td>$783</td>
+                <td>$576</td>
+                <td>$456</td>
+            </tr>
+            <tr>
+                <th scope="row">$100,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$3,900</td>
+                <td>$2,053</td>
+                <td>$1,354</td>
+                <td>$869</td>
+                <td>$641</td>
+                <td>$508</td>
+            </tr>
+            <tr>
+                <th scope="row">$120,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$4,288</td>
+                <td>$2,378</td>
+                <td>$1,547</td>
+                <td>$1,044</td>
+                <td>$770</td>
+                <td>$609</td>
+            </tr>
+            <tr>
+                <th scope="row">$150,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$4,852</td>
+                <td>$2,912</td>
+                <td>$1,679</td>
+                <td>$1,281</td>
+                <td>$944</td>
+                <td>$747</td>
+            </tr>
+            <tr>
+                <th scope="row">$160,200+</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$4,872</td>
+                <td>$2,928</td>
+                <td>$,1682</td>
+                <td>$1,288</td>
+                <td>$949</td>
+                <td>$751</td>
+            </tr>
+        </tbody>
+    </table>
+    <p class="figure-footer">Table 3: Social Security Survivors Insurance Benefits</p>
+    <p><small>N/A - Not enough credits available to be eligbile for benefits</small></p>
+    <h3 class="article-header">Private Solutions</h3>
+    <p>
+        With the eliminated Social Security payroll tax, and our assumptions of those lost wages coming back to
+        wages, those income ranges we have listed out become these now:
+    </p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="row">Annual Earnings</th>
+                <th>Extra Earnings (Annually)</th>
+                <th>Extra Earnings (Monthly)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">$5,000</th>
+                <td>$620</td>
+                <td>$51.67</td>
+            </tr>
+            <tr>
+                <th scope="row">$10,000</th>
+                <td>$1,240</td>
+                <td>$103.33</td>
+            </tr>
+            <tr>
+                <th scope="row">$15,000</th>
+                <td>$1,860</td>
+                <td>$155.00</td>
+            </tr>
+            <tr>
+                <th scope="row">$20,000</th>
+                <td>$2,480</td>
+                <td>$206.67</td>
+            </tr>
+            <tr>
+                <th scope="row">$25,000</th>
+                <td>$3,100</td>
+                <td>$258.33</td>
+            </tr>
+            <tr>
+                <th scope="row">$30,000</th>
+                <td>$3,720</td>
+                <td>$310.00</td>
+            </tr>
+            <tr>
+                <th scope="row">$35,000</th>
+                <td>$4,340</td>
+                <td>$361.67</td>
+            </tr>
+            <tr>
+                <th scope="row">$40,000</th>
+                <td>$4,960</td>
+                <td>$413.33</td>
+            </tr>
+            <tr>
+                <th scope="row">$45,000</th>
+                <td>$5,580</td>
+                <td>$465.00</td>
+            </tr>
+            <tr>
+                <th scope="row">$50,000</th>
+                <td>$6,200</td>
+                <td>$516.67</td>
+            </tr>
+            <tr>
+                <th scope="row">$60,000</th>
+                <td>$7,440</td>
+                <td>$620.00</td>
+            </tr>
+            <tr>
+                <th scope="row">$70,000</th>
+                <td>$8,680</td>
+                <td>$723.33</td>
+            </tr>
+            <tr>
+                <th scope="row">$80,000</th>
+                <td>$9,920</td>
+                <td>$826.67</td>
+            </tr>
+            <tr>
+                <th scope="row">$90,000</th>
+                <td>$11,160</td>
+                <td>$930.00</td>
+            </tr>
+            <tr>
+                <th scope="row">$100,000</th>
+                <td>$12,400</td>
+                <td>$1,033.33</td>
+            </tr>
+            <tr>
+                <th scope="row">$120,000</th>
+                <td>$14,880</td>
+                <td>$1,240.00</td>
+            </tr>
+            <tr>
+                <th scope="row">$150,000</th>
+                <td>$18,600</td>
+                <td>$1,550.00</td>
+            </tr>
+            <tr>
+                <th scope="row">$160,200</th>
+                <td>$19,865</td>
+                <td>$1,655.42</td>
+            </tr>
+        </tbody>
+    </table>
+    <p class="figure-footer">Table 4: Extra wages from excluding Social Security</p>
+    <p>
+        The extra earnings will be used to create a similar scenario to Social Security Old-Age Insurance,
+        Disability Insurance, and Survivors Insurance. We will first find private insurance products for both
+        Disability Insurance and Survivors Insurance that match the benefits for each age group. Any leftover
+        wages will be put into a 401K/Taxable Brokerage as eligible to match benefits at 62. Any wages left over
+        after retirement accounts will be placed into a Taxable Brokerage account. This analysis will not include
+        an IRA portion, as those solutions are more complex.
+    </p>
+    <h4 class="article-header">Private Life Insurance (SS Survivors Insurance)</h4>
+    <p>
+        These numbers were gathered from Fidelity (Fidelity Investments). Our estimates assume the following
+        characteristics:
+    </p>
+    <ul>
+        <li>Male</li>
+        <li>5' 10"</li>
+        <li>Non-smoker</li>
+        <li>Average Health</li>
+    </ul>
+    <p>
+        We use term life insurance for at most 20 years or the number of years until retirement, whichever is
+        less. We use a coverage amount that would last 30 years (the equivalent length of Survivors Insurance)
+        of the monthly benefit of the corresponding Survivors benefit.
+    </p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Monthly Costs</th>
+                <th scope="col">Age</th>
+                <th scope="col">25</th>
+                <th scope="col">30</th>
+                <th scope="col">35</th>
+                <th scope="col">40</th>
+                <th scope="col">45</th>
+                <th scope="col">50</th>
+            </tr>
+        </thead>
+        <thead>
+            <tr>
+                <th scope="row">Annual Earnings</th>
+                <th colspan="7" class="bg-secondary-subtle"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">$5,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>N/A</td>
+                <td>N/A</td>
+            </tr>
+            <tr>
+                <th scope="row">$10,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$19.34</td>
+                <td>$17.43</td>
+            </tr>
+            <tr>
+                <th scope="row">$15,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$19.34</td>
+                <td>$17.43</td>
+            </tr>
+            <tr>
+                <th scope="row">$20,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$29.79</td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$19.34</td>
+                <td>$17.43</td>
+            </tr>
+            <tr>
+                <th scope="row">$25,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$36.85</td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$19.34</td>
+                <td>$17.43</td>
+            </tr>
+            <tr>
+                <th scope="row">$30,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$36.85</td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$19.34</td>
+                <td>$17.43</td>
+            </tr>
+            <tr>
+                <th scope="row">$35,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$36.98</td>
+                <td>$26.27</td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$19.34</td>
+                <td>$17.43</td>
+            </tr>
+            <tr>
+                <th scope="row">$40,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$36.98</td>
+                <td>$29.79</td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$19.34</td>
+                <td>$17.43</td>
+            </tr>
+            <tr>
+                <th scope="row">$45,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$59.72</td>
+                <td>$33.32</td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$19.34</td>
+                <td>$17.43</td>
+            </tr>
+            <tr>
+                <th scope="row">$50,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$59.72</td>
+                <td>$36.85</td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$19.34</td>
+                <td>$17.43</td>
+            </tr>
+            <tr>
+                <th scope="row">$60,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$59.72</td>
+                <td>$36.85</td>
+                <td>$22.74</td>
+                <td>$22.74</td>
+                <td>$19.34</td>
+                <td>$17.43</td>
+            </tr>
+            <tr>
+                <th scope="row">$70,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$59.72</td>
+                <td>$36.98</td>
+                <td>$26.27</td>
+                <td>$22.74</td>
+                <td>$19.34</td>
+                <td>$17.43</td>
+            </tr>
+            <tr>
+                <th scope="row">$80,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$70.30</td>
+                <td>$36.98</td>
+                <td>$26.27</td>
+                <td>$22.74</td>
+                <td>$19.34</td>
+                <td>$17.43</td>
+            </tr>
+            <tr>
+                <th scope="row">$90,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$73.96</td>
+                <td>$59.72</td>
+                <td>$29.79</td>
+                <td>$22.74</td>
+                <td>$19.34</td>
+                <td>$17.43</td>
+            </tr>
+            <tr>
+                <th scope="row">$100,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$96.70</td>
+                <td>$59.72</td>
+                <td>$33.32</td>
+                <td>$22.74</td>
+                <td>$19.34</td>
+                <td>$17.43</td>
+            </tr>
+            <tr>
+                <th scope="row">$120,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$96.70</td>
+                <td>$59.72</td>
+                <td>$36.85</td>
+                <td>$26.27</td>
+                <td>$19.34</td>
+                <td>$17.43</td>
+            </tr>
+            <tr>
+                <th scope="row">$150,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$103.75</td>
+                <td>$59.72</td>
+                <td>$36.98</td>
+                <td>$29.79</td>
+                <td>$22.19</td>
+                <td>$17.43</td>
+            </tr>
+            <tr>
+                <th scope="row">$160,200</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$103.75</td>
+                <td>$63.25</td>
+                <td>$36.98</td>
+                <td>$29.79</td>
+                <td>$22.19</td>
+                <td>$17.43</td>
+            </tr>
+        </tbody>
+    </table>
+    <p class="figure-footer">Table 5: Private Life Insurance Costs</p>
+    <p><small>N/A - There is not a corresponding Social Security benefit to compare</small></p>
+    <h4 class="article-header">Private Disability Insurance (SS Disability Insurance)</h4>
+    <p>These numbers were gathered from Policygenius.</p>
+    <p>
+        We use long-term disability insurance since that most matches the benefits of Social Security Disability
+        Insurance.
+    </p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Monthly Costs</th>
+                <th scope="col">Age</th>
+                <th scope="col">25</th>
+                <th scope="col">30</th>
+                <th scope="col">35</th>
+                <th scope="col">40</th>
+                <th scope="col">45</th>
+                <th scope="col">50</th>
+            </tr>
+        </thead>
+        <thead>
+            <tr>
+                <th scope="row">Annual Earnings</th>
+                <th colspan="7" class="bg-secondary-subtle"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">$5,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$13</td>
+                <td>$18</td>
+                <td>$23</td>
+                <td>$28</td>
+                <td>N/A</td>
+                <td>N/A</td>
+            </tr>
+            <tr>
+                <th scope="row">$10,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$13</td>
+                <td>$18</td>
+                <td>$23</td>
+                <td>$28</td>
+                <td>$33</td>
+                <td>$38</td>
+            </tr>
+            <tr>
+                <th scope="row">$15,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$13</td>
+                <td>$18</td>
+                <td>$23</td>
+                <td>$28</td>
+                <td>$33</td>
+                <td>$38</td>
+            </tr>
+            <tr>
+                <th scope="row">$20,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$17</td>
+                <td>$22</td>
+                <td>$27</td>
+                <td>$32</td>
+                <td>$37</td>
+                <td>$42</td>
+            </tr>
+            <tr>
+                <th scope="row">$25,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$21</td>
+                <td>$26</td>
+                <td>$31</td>
+                <td>$36</td>
+                <td>$41</td>
+                <td>$46</td>
+            </tr>
+            <tr>
+                <th scope="row">$30,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$25</td>
+                <td>$35</td>
+                <td>$45</td>
+                <td>$55</td>
+                <td>$65</td>
+                <td>$75</td>
+            </tr>
+            <tr>
+                <th scope="row">$35,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$29</td>
+                <td>$39</td>
+                <td>$49</td>
+                <td>$59</td>
+                <td>$69</td>
+                <td>$79</td>
+            </tr>
+            <tr>
+                <th scope="row">$40,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$34</td>
+                <td>$44</td>
+                <td>$54</td>
+                <td>$64</td>
+                <td>$74</td>
+                <td>$84</td>
+            </tr>
+            <tr>
+                <th scope="row">$45,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$38</td>
+                <td>$48</td>
+                <td>$58</td>
+                <td>$68</td>
+                <td>$78</td>
+                <td>$88</td>
+            </tr>
+            <tr>
+                <th scope="row">$50,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$42</td>
+                <td>$59</td>
+                <td>$75</td>
+                <td>$92</td>
+                <td>$108</td>
+                <td>$125</td>
+            </tr>
+            <tr>
+                <th scope="row">$60,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$50</td>
+                <td>$67</td>
+                <td>$83</td>
+                <td>$100</td>
+                <td>$116</td>
+                <td>$133</td>
+            </tr>
+            <tr>
+                <th scope="row">$70,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$59</td>
+                <td>$76</td>
+                <td>$92</td>
+                <td>$109</td>
+                <td>$125</td>
+                <td>$142</td>
+            </tr>
+            <tr>
+                <th scope="row">$80,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$67</td>
+                <td>$94</td>
+                <td>$120</td>
+                <td>$147</td>
+                <td>$173</td>
+                <td>$200</td>
+            </tr>
+            <tr>
+                <th scope="row">$90,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$75</td>
+                <td>$102</td>
+                <td>$128</td>
+                <td>$155</td>
+                <td>$181</td>
+                <td>$208</td>
+            </tr>
+            <tr>
+                <th scope="row">$100,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$83</td>
+                <td>$116</td>
+                <td>$150</td>
+                <td>$183</td>
+                <td>$217</td>
+                <td>$250</td>
+            </tr>
+            <tr>
+                <th scope="row">$120,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$104</td>
+                <td>$146</td>
+                <td>$188</td>
+                <td>$229</td>
+                <td>$271</td>
+                <td>$313</td>
+            </tr>
+            <tr>
+                <th scope="row">$150,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$125</td>
+                <td>$175</td>
+                <td>$225</td>
+                <td>$275</td>
+                <td>$325</td>
+                <td>$375</td>
+            </tr>
+            <tr>
+                <th scope="row">$160,200</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$146</td>
+                <td>$204</td>
+                <td>$263</td>
+                <td>$321</td>
+                <td>$380</td>
+                <td>$438</td>
+            </tr>
+        </tbody>
+    </table>
+    <p class="figure-footer">Table 6: Private Long-term Disability Insurance Costs</p>
+    <p><small>N/A - There is not a corresponding Social Security benefit to compare</small></p>
+    <h4 class="article-header">Net Extra Wages</h4>
+    <p>Taking the extra wages minus the two insurance solutions, we get the extra wages table:</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Monthly Extra Wages</th>
+                <th scope="col">Age</th>
+                <th scope="col">25</th>
+                <th scope="col">30</th>
+                <th scope="col">35</th>
+                <th scope="col">40</th>
+                <th scope="col">45</th>
+                <th scope="col">50</th>
+            </tr>
+        </thead>
+        <thead>
+            <tr>
+                <th scope="row">Annual Earnings</th>
+                <th colspan="7" class="bg-secondary-subtle"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">$5,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$15.93</td>
+                <td>$10.93</td>
+                <td>$5.93</td>
+                <td>$0.93</td>
+                <td>N/A</td>
+                <td>N/A</td>
+            </tr>
+            <tr>
+                <th scope="row">$10,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$67.59</td>
+                <td>$62.59</td>
+                <td>$57.59</td>
+                <td>$52.59</td>
+                <td>$50.99</td>
+                <td>$47.90</td>
+            </tr>
+            <tr>
+                <th scope="row">$15,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$119.26</td>
+                <td>$114.26</td>
+                <td>$109.26</td>
+                <td>$104.26</td>
+                <td>$102.66</td>
+                <td>$99.57</td>
+            </tr>
+            <tr>
+                <th scope="row">$20,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$159.88</td>
+                <td>$161.93</td>
+                <td>$156.93</td>
+                <td>$151.93</td>
+                <td>$150.33</td>
+                <td>$147.24</td>
+            </tr>
+            <tr>
+                <th scope="row">$25,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$200.48</td>
+                <td>$209.59</td>
+                <td>$204.59</td>
+                <td>$199.59</td>
+                <td>$197.99</td>
+                <td>$194.90</td>
+            </tr>
+            <tr>
+                <th scope="row">$30,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$248.15</td>
+                <td>$252.26</td>
+                <td>$242.26</td>
+                <td>$232.26</td>
+                <td>$225.66</td>
+                <td>$217.57</td>
+            </tr>
+            <tr>
+                <th scope="row">$35,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$295.69</td>
+                <td>$296.40</td>
+                <td>$289.93</td>
+                <td>$279.93</td>
+                <td>$273.33</td>
+                <td>$265.24</td>
+            </tr>
+            <tr>
+                <th scope="row">$40,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$342.35</td>
+                <td>$339.54</td>
+                <td>$336.59</td>
+                <td>$326.59</td>
+                <td>$319.99</td>
+                <td>$311.90</td>
+            </tr>
+            <tr>
+                <th scope="row">$45,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$367.28</td>
+                <td>$383.68</td>
+                <td>$384.26</td>
+                <td>$374.26</td>
+                <td>$367.66</td>
+                <td>$359.57</td>
+            </tr>
+            <tr>
+                <th scope="row">$50,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$414.95</td>
+                <td>$420.82</td>
+                <td>$418.93</td>
+                <td>$401.93</td>
+                <td>$389.33</td>
+                <td>$374.24</td>
+            </tr>
+            <tr>
+                <th scope="row">$60,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$510.28</td>
+                <td>$516.15</td>
+                <td>$514.26</td>
+                <td>$497.26</td>
+                <td>$484.66</td>
+                <td>$469.57</td>
+            </tr>
+            <tr>
+                <th scope="row">$70,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$604.61</td>
+                <td>$610.35</td>
+                <td>$605.06</td>
+                <td>$591.59</td>
+                <td>$578.99</td>
+                <td>$563.90</td>
+            </tr>
+            <tr>
+                <th scope="row">$80,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$689.37</td>
+                <td>$695.69</td>
+                <td>$680.40</td>
+                <td>$656.93</td>
+                <td>$634.33</td>
+                <td>$609.24</td>
+            </tr>
+            <tr>
+                <th scope="row">$90,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$781.04</td>
+                <td>$768.28</td>
+                <td>$772.21</td>
+                <td>$752.26</td>
+                <td>$729.66</td>
+                <td>$704.57</td>
+            </tr>
+            <tr>
+                <th scope="row">$100,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$853.63</td>
+                <td>$857.61</td>
+                <td>$850.01</td>
+                <td>$827.59</td>
+                <td>$796.99</td>
+                <td>$765.90</td>
+            </tr>
+            <tr>
+                <th scope="row">$120,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,039.30</td>
+                <td>$1,034.28</td>
+                <td>$1,015.15</td>
+                <td>$984.73</td>
+                <td>$949.66</td>
+                <td>$909.57</td>
+            </tr>
+            <tr>
+                <th scope="row">$150,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,321.25</td>
+                <td>$1,315.28</td>
+                <td>$1,288.02</td>
+                <td>$1,245.21</td>
+                <td>$1,202.81</td>
+                <td>$1,157.57</td>
+            </tr>
+            <tr>
+                <th scope="row">$160,200</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>$1,405.67</td>
+                <td>$1,388.17</td>
+                <td>$1,355.44</td>
+                <td>$1,304.63</td>
+                <td>$1,253.23</td>
+                <td>$1,199.99</td>
+            </tr>
+        </tbody>
+    </table>
+    <p class="figure-footer">Table 7: Extra Wages Minus Term-life Insurance and Long-term Disability Insurance</p>
+    <p><small>N/A - There is not a corresponding Social Security benefit to compare</small></p>
+    <h4 class="article-header">Retirement</h4>
+    <p>
+        Now that our insurance needs are met, we will use the 401K solution for retirement. We will use a
+        target date fund that matches a retirement age of 62. These funds start out by investing in higher return
+        assets and over its lifetime will transition into a more conservative portfolio by retirement.
+    </p>
+    <p>
+        Target date funds are offered by many companies, such as Vanguard. Vanguard's target date funds use a glide
+        path from start to decades after retirement. Here is an example of a glide path in Vanguard's target date fund
+        prospectus:
+    </p>
+    <img src="images/target_date_glide.png">
+    <p>
+        We will use Portfolio Visualizer to set up a Monte Carlo simulation of these asset classes across the lifetime of the individual and
+        into retirement to get the most accurate depication of their portfolio balances.
+    </p>
+    <p>
+        The following asset classes and their percentages will be used in the simulation:
+    </p>
+    <p>Before Retirement:</p>
+    <ul>
+        <li>54% US Stocks</li>
+        <li>36% Foreign Stocks</li>
+        <li>7% US Fixed Income</li>
+        <li>3% Foreign Fixed Income</li>
+    </ul>
+    <p>At Retirement:</p>
+    <ul>
+        <li>30% US Stocks</li>
+        <li>20% Foreign Stocks</li>
+        <li>35% US Fixed Income</li>
+        <li>15% Foreign Fixed Income</li>
+    </ul>
+    <p>
+        Asset class percentages will be interpolated between 25 years before retirement and the retirement date.
+    </p>
+    <p>
+        If we take out the corresponding Social Security Old-Age benefits from each portfolio balance (accounting for inflation/COL adjustments), this is the
+        chance of survival after 30 years of retirement:
+    </p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Survival Chance</th>
+                <th scope="col">Age</th>
+                <th scope="col">25</th>
+                <th scope="col">30</th>
+                <th scope="col">35</th>
+                <th scope="col">40</th>
+                <th scope="col">45</th>
+                <th scope="col">50</th>
+            </tr>
+        </thead>
+        <thead>
+            <tr>
+                <th scope="row">Annual Earnings</th>
+                <th colspan="7" class="bg-secondary-subtle"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">$5,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>0%</td>
+                <td>0%</td>
+                <td>0%</td>
+                <td>0%</td>
+                <td>N/A</td>
+                <td>N/A</td>
+            </tr>
+            <tr>
+                <th scope="row">$10,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>1.02%</td>
+                <td>0%</td>
+                <td>0%</td>
+                <td>0%</td>
+                <td>0%</td>
+                <td>0%</td>
+            </tr>
+            <tr>
+                <th scope="row">$15,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>1.88%</td>
+                <td>0.44%</td>
+                <td>0%</td>
+                <td>0%</td>
+                <td>0%</td>
+                <td>0%</td>
+            </tr>
+            <tr>
+                <th scope="row">$20,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>3.52%</td>
+                <td>1.18%</td>
+                <td>0%</td>
+                <td>0%</td>
+                <td>0%</td>
+                <td>0%</td>
+            </tr>
+            <tr>
+                <th scope="row">$25,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>5.28%</td>
+                <td>2.90%</td>
+                <td>0.98%</td>
+                <td>0%</td>
+                <td>0%</td>
+                <td>0%</td>
+            </tr>
+            <tr>
+                <th scope="row">$30,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>7.42%</td>
+                <td>3.76%</td>
+                <td>1.60%</td>
+                <td>0%</td>
+                <td>0%</td>
+                <td>0%</td>
+            </tr>
+            <tr>
+                <th scope="row">$35,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>9.58%</td>
+                <td>5.72%</td>
+                <td>1.80%</td>
+                <td>0%</td>
+                <td>0%</td>
+                <td>0%</td>
+            </tr>
+            <tr>
+                <th scope="row">$40,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>11.52%</td>
+                <td>6.72%</td>
+                <td>3.44%</td>
+                <td>1.32%</td>
+                <td>0%</td>
+                <td>0%</td>
+            </tr>
+            <tr>
+                <th scope="row">$45,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>11.70%</td>
+                <td>8.48%</td>
+                <td>4.98%</td>
+                <td>2.08%</td>
+                <td>0.62%</td>
+                <td>0%</td>
+            </tr>
+            <tr>
+                <th scope="row">$50,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>13.10%</td>
+                <td>9.30%</td>
+                <td>5.86%</td>
+                <td>2.26%</td>
+                <td>0.74%</td>
+                <td>0%</td>
+            </tr>
+            <tr>
+                <th scope="row">$60,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>17.40%</td>
+                <td>12.34%</td>
+                <td>9.48%</td>
+                <td>4.48%</td>
+                <td>1.74%</td>
+                <td>0%</td>
+            </tr>
+            <tr>
+                <th scope="row">$70,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>19.28%</td>
+                <td>15.00%</td>
+                <td>10.52%</td>
+                <td>6.10%</td>
+                <td>3.00%</td>
+                <td>0.66%</td>
+            </tr>
+            <tr>
+                <th scope="row">$80,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>22.22%</td>
+                <td>16.14%</td>
+                <td>11.26%</td>
+                <td>6.52%</td>
+                <td>2.84%</td>
+                <td>0.84%</td>
+            </tr>
+            <tr>
+                <th scope="row">$90,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>21.10%</td>
+                <td>15.78%</td>
+                <td>13.18%</td>
+                <td>8.48%</td>
+                <td>5.08%</td>
+                <td>1.54%</td>
+            </tr>
+            <tr>
+                <th scope="row">$100,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>26.12%</td>
+                <td>18.92%</td>
+                <td>14.06%</td>
+                <td>9.76%</td>
+                <td>5.32%</td>
+                <td>1.90%</td>
+            </tr>
+            <tr>
+                <th scope="row">$120,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>33.76%</td>
+                <td>25.08%</td>
+                <td>18.60%</td>
+                <td>13.00%</td>
+                <td>8.52%</td>
+                <td>2.62%</td>
+            </tr>
+            <tr>
+                <th scope="row">$150,000</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>41.52%</td>
+                <td>34.54%</td>
+                <td>27.76%</td>
+                <td>17.46%</td>
+                <td>11.34%</td>
+                <td>5.50%</td>
+            </tr>
+            <tr>
+                <th scope="row">$160,200</th>
+                <td class="bg-secondary-subtle"></td>
+                <td>45.42%</td>
+                <td>35.86%</td>
+                <td>29.64%</td>
+                <td>18.66%</td>
+                <td>11.04%</td>
+                <td>6.04%</td>
+            </tr>
+        </tbody>
+    </table>
+    <p class="figure-footer">Table 9: Chance of Portfolio Surviving After 30 Years of Retirement</p>
+    <p><small>N/A - There is not a corresponding Social Security benefit to compare</small></p>
+    <p>
+        In our scenarios, 6.45% of all portfolios succeed in competing against Social Security Old-Age withdrawals.
+        These scenarios are based on incomes not changing as one ages.
+    </p>
+    <p>In 2021, these were the current medium household income by age:</p>
+    <img src="images/income_by_ages.png">
+    <p class="figure-footer">Figure 1: Median Household Income in the U.S. in 2021 (Statista)</p>
+    <p>
+        Since median income changes as one ages, we can use this to create a more meaningful example
+        of the median individual. We will use the median incomes in each age group from age 25 to 62
+        to calculate Social Security benefits and compare against the private options.
+    </p>
+    <p>
+        We start with a median income of $74,862 at age 25, then increase income by 2% per year until
+        age 62. This gives us an Old-Age monthly benefit of $8,233. The Survivor benefit in case
+        of disability would be $2,144.10.
+    </p>
+    <p>
+        An elimination of Social Security would increase the $74,862 wages by $9,282.88, which is $773.57 per month.
+        We'll use the $80,000 bracket for private life and disability insurance costs, summing up to $137.30 per month.
+        This gives us $636.27 to invest, which will increase by 2% per year, until age 62.
+    </p>
+    <p>
+        The Monte Carlo simulation gives this portfolio an 8.64% chance of survival; only slightly better than the median
+        portfolio of 6.45% across all ages and incomes.
+    </p>
+    <h2 class="article-header">Conclusion</h2>
+    <p>
+        Our analysis shows that out of 104 Social Security benefit scenarios, 93.55% of portfolios do not achieve a full 30-year
+        retirement based on distributed Social Security benefits.
+    </p>
+    <hr>
+    <h2 class="article-header">Citations</h2>
+    <p><i>Fidelity Investments</i>, https://www.fidelity.com/.</p>
+    <p>
+        Bureau, US Census. "How the Census Bureau Measures Poverty." <i>Census.gov</i>, 30 Jan. 2023,
+        https://www.census.gov/topics/income-poverty/poverty/guidance/poverty-measures.html.
+    </p>
+    <p>
+        "How Much Does Long-Term Disability Insurance Cost?" <i>Policygenius</i>,
+        https://www.policygenius.com/disability-insurance/learn/how-much-does-long-term-
+        disability-insurance-cost/.
+    </p>
+    <p>
+        "Portfolio Visualizer." <i>Portfolio Visualizer</i>, https://www.portfoliovisualizer.com/.
+    </p>
+    <p>
+        Published by Statista Research Department, and Oct 11. "Median Household Income by Age
+        U.S. 2021." <i>Statista</i>, 11 Oct. 2022, https://www.statista.com/statistics/233184/median-
+        household-income-in-the-united-states-by-age/.
+    </p>
+    <p>
+        Oact. "Social Security Quick Calculator." <i>Quick Calculator</i>,
+        https://www.ssa.gov/OACT/quickcalc/.
+    </p>
+    <p>"Social Security Administration." <i>SSA</i>, https://www.ssa.gov/.</p>
+    <p>
+        United States, Congress, BOARD OF TRUSTEES, et al. <i>THE 2022 ANNUAL REPORT OF THE
+        BOARD OF TRUSTEES OF THE FEDERAL OLD-AGE AND SURVIVORS INSURANCE
+        AND FEDERAL DISABILITY INSURANCE TRUST FUNDS</i>, Social Security
+        Administration, 2 June 2022. https://www.ssa.gov/OACT/TR/2022/tr2022.pdf. Accessed 5
+        Feb. 2023.
+    </p>
+    <p>
+        United States, Congress, Office of Retirement and Disability Policy. <i>Annual Statistical Report on
+        the Social Security Disability Insurance Program</i>, Social Security Administration, Oct.
+        2018. https://www.ssa.gov/policy/docs/statcomps/di_asr/2017/di_asr17.pdf. Accessed 5
+        Feb. 2023.
+    </p>
+    <p>
+        <i>Vanguard Target Retirement funds</i>. Vanguard. (n.d.). https://investor.vanguard.com/investment-products/mutual-funds/target-retirement-funds 
+    </p>
+</section>
+
+    <footer class="text-center" style="background: #e8e6e6;">
+        <div class="py-2">&copy; 2023 by Collin Moon</div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

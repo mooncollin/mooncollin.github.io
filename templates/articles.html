@@ -1,0 +1,13 @@
+{% extends "templates/base.html" %}
+{% block title %}Code, Capitalism, and Cooperation{% endblock %}
+{% block articles_active %}activ{% endblock %}
+{% block content %}
+<section class="container my-5">
+    <h2 class="text-center">Articles</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            {% include 'templates/ss_versus_private_card.html' %}
+        </div>
+    </div>
+</section>
+{% endblock %}

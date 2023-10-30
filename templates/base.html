@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {%- block head %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <style>
+        .nav-link
+        {
+            color: black;
+        }
+        .nav-link:hover, .activ
+        {
+            color: #6600ea;
+        }
+
+        h2.article-header
+        {
+            color: #2f54a4;
+        }
+
+        h3.article-header
+        {
+            color: #509cda;
+        }
+
+        h4.article-header
+        {
+            color: #39395b;
+        }
+
+        .figure-footer
+        {
+            font-size: small;
+            font-style: italic;
+            color: #39395b;
+        }
+    </style>
+    {%- endblock %}
+</head>
+<body style="font-family: 'Garamond'">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <header class="text-center py-5">
+        <h2 style="font-size: 48px; font-weight: bold; text-shadow: 1px 1px #000000;"><code class="text-black"><span style="color: #0d6efd">{</span><span style="color: #6f42c1">Code</span>, <span style="color: #007B5E">Capitalism</span>, and <span style="color: #FFD700">Cooperation</span><span style="color: #0d6efd">}</span></code></h2>
+    </header>
+    <nav class="navbar navbar-expand-md">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse row" id="navbarNav">
+            <ul class="navbar-nav d-md-none">
+                <li class="nav-item">
+                    <a class="nav-link px-5" href="index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-5" href="articles.html">Articles</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav d-none d-md-flex">
+                <li class="border-top border-bottom border-black col-5"></li>
+                <li class="nav-item border-start border-top border-bottom border-black col-1">
+                    <a class="nav-link {% block home_active %}{% endblock %} text-center" href="index.html">Home</a>
+                </li>
+                <li class="nav-item border-end border-start border-top border-bottom border-black col-1">
+                    <a class="nav-link {% block articles_active %}{% endblock %} text-center" href="articles.html">Articles</a>
+                </li>
+                <li class="border-top border-bottom border-black col-5"></li>
+            </ul>
+        </div>
+    </nav>
+    {%- block content %}
+    {%- endblock %}
+    <footer class="text-center" style="background: #e8e6e6;">
+        {%- block footer %}
+        <div class="py-2">&copy; 2023 by Collin Moon</div>
+        {%- endblock %}
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
