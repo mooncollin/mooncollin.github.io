@@ -2,12 +2,99 @@
 {% block title %}Code, Capitalism, and Cooperation{% endblock %}
 {% block articles_active %}activ{% endblock %}
 {% block content %}
-<section class="container my-5">
+<script>
+    function showArticles(tag = null)
+    {
+        allArticlesE.classList.replace("hide", "show");
+        allArticlesE.replaceChildren();
+        var articleNum = 0;
+        var lastArticleRow = null;
+        for (const articleE of allArticles)
+        {
+            articleE.second.classList.replace("show", "hide");
+            if (tag == null || articleE.first.tags.has(tag))
+            {
+                if (articleNum % 4 == 0)
+                {
+                    lastArticleRow = document.createElement("div");
+                    lastArticleRow.classList.add("row", "mt-3");
+                    allArticlesE.appendChild(lastArticleRow);
+                    articleNum = 0;
+                }
+                setTimeout(() => {
+                    articleE.second.classList.replace("hide", "show");
+                }, 50);
+                lastArticleRow.appendChild(articleE.second);
+                ++articleNum;
+            }
+        }
+    }
+
+    function switchTag(element)
+    {
+        if (!element.classList.contains("activ"))
+        {
+            for (const child of navList.children)
+            {
+                child.classList.remove("activ");
+            }
+
+            element.classList.add("activ");
+            if (element.innerText == 'All')
+            {
+                showArticles();
+            }
+            else
+            {
+                showArticles(element.innerText);
+            }
+        }
+    }
+
+    var articleTags = new Set();
+    for (const article of articles)
+    {
+        for (const tag of article.tags)
+        {
+            articleTags.add(tag);
+        }
+    }
+    articleTags = Array.from(articleTags);
+    articleTags.sort();
+</script>
+<section class="container my-3 mb-5">
     <h2 class="text-center">Articles</h2>
-    <div class="row justify-content-center">
-        <div class="col-md-4">
-            {% include 'templates/ss_versus_private_card.html' %}
-        </div>
-    </div>
+    <nav class="nav border-bottom pb-0" id="article_nav">
+        <button class="nav-link ms-3 btn btn-link activ" onclick="switchTag(this)">All</button>
+    </nav>
+    <div id="allArticles"></div>
 </section>
+<script>
+    const allArticlesE = document.getElementById("allArticles");
+    const allArticles = []
+    
+    for (const article of articles.reverse())
+    {
+        const articleColumn = document.createElement("div");
+        articleColumn.classList.add("col-md-3", "show");
+        const articleCard = generate_card(article);
+        articleColumn.appendChild(articleCard);
+        allArticles.push({first: article, second: articleColumn});
+    }
+
+    const navList = document.getElementById("article_nav");
+    for (const tag of articleTags)
+    {
+        const categoryLink = document.createElement("button");
+        categoryLink.classList.add("nav-link", "ms-3", "btn", "btn-link");
+        categoryLink.innerText = tag;
+        categoryLink.onclick = () => { switchTag(categoryLink); };
+
+        navList.appendChild(categoryLink);
+    }
+
+    addEventListener("load", (event) => {
+        showArticles();
+    });
+</script>
 {% endblock %}

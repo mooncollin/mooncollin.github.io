@@ -15,6 +15,11 @@
             color: #6600ea;
         }
 
+        .activ:focus
+        {
+            color: #6600ea;
+        }
+
         h2.article-header
         {
             color: #2f54a4;
@@ -36,7 +41,19 @@
             font-style: italic;
             color: #39395b;
         }
+
+        .show
+        {
+            transition: opacity 400ms;
+        }
+
+        .hide
+        {
+            opacity: 0;
+        }
     </style>
+    <script src="js/common.js"></script>
+    <script src="js/main.js"></script>
 </head>
 <body style="font-family: 'Garamond'">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
@@ -68,23 +85,28 @@
             </ul>
         </div>
     </nav>
-<section class="container my-5">
+    <div id="content" style="min-height: 100vh">
+<section class="container my-3 mb-5">
     <h2 class="text-center">Featured Articles</h2>
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card">
-    <img src="images/ss.png" class="card-img-top p-2">
-    <div class="card-body">
-        <h5 class="card-title">Social Security Versus Private Security</h5>
-        <p class="card-text">A cost-benefit analysis of the public Social Security option versus private options</p>
-        <a href="ss_versus_private.html" class="btn btn-primary">Read More</a>
-        <p class="mt-2 mb-0">October 29th, 2023</p>
-    </div>
-</div>
-        </div>
+    <div class="row" id="featured_articles">
     </div>
 </section>
+<script>
+    const featured_articles = document.getElementById("featured_articles");
+    for (const article of articles.slice(Math.max(articles.length - 3, 0)).reverse())
+    {
+        const articleColumn = document.createElement("div");
+        articleColumn.classList.add("col-md-4", "hide");
+        const articleCard = generate_card(article);
+        articleColumn.appendChild(articleCard);
+        featured_articles.appendChild(articleColumn);
+        addEventListener("load", (event) => {
+            articleColumn.classList.replace("hide", "show");
+        });
+    }
+</script>
 
+    </div>
     <footer class="text-center" style="background: #e8e6e6;">
         <div class="py-2">&copy; 2023 by Collin Moon</div>
     </footer>

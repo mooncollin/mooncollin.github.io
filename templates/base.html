@@ -16,6 +16,11 @@
             color: #6600ea;
         }
 
+        .activ:focus
+        {
+            color: #6600ea;
+        }
+
         h2.article-header
         {
             color: #2f54a4;
@@ -37,7 +42,19 @@
             font-style: italic;
             color: #39395b;
         }
+
+        .show
+        {
+            transition: opacity 400ms;
+        }
+
+        .hide
+        {
+            opacity: 0;
+        }
     </style>
+    <script src="js/common.js"></script>
+    <script src="js/main.js"></script>
     {%- endblock %}
 </head>
 <body style="font-family: 'Garamond'">
@@ -70,8 +87,10 @@
             </ul>
         </div>
     </nav>
+    <div id="content" style="min-height: 100vh">
     {%- block content %}
     {%- endblock %}
+    </div>
     <footer class="text-center" style="background: #e8e6e6;">
         {%- block footer %}
         <div class="py-2">&copy; 2023 by Collin Moon</div>

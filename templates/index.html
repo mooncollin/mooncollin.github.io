@@ -2,12 +2,23 @@
 {% block title %}Code, Capitalism, and Cooperation{% endblock %}
 {% block home_active %}activ{% endblock %}
 {% block content %}
-<section class="container my-5">
+<section class="container my-3 mb-5">
     <h2 class="text-center">Featured Articles</h2>
-    <div class="row">
-        <div class="col-md-4">
-            {% include 'templates/ss_versus_private_card.html' %}
-        </div>
+    <div class="row" id="featured_articles">
     </div>
 </section>
+<script>
+    const featured_articles = document.getElementById("featured_articles");
+    for (const article of articles.slice(Math.max(articles.length - 3, 0)).reverse())
+    {
+        const articleColumn = document.createElement("div");
+        articleColumn.classList.add("col-md-4", "hide");
+        const articleCard = generate_card(article);
+        articleColumn.appendChild(articleCard);
+        featured_articles.appendChild(articleColumn);
+        addEventListener("load", (event) => {
+            articleColumn.classList.replace("hide", "show");
+        });
+    }
+</script>
 {% endblock %}
