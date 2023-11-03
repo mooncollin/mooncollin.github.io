@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <style>
+        .nav-link
+        {
+            color: black;
+        }
+        .nav-link:hover, .activ
+        {
+            color: #6600ea;
+        }
+
+        .activ:focus
+        {
+            color: #6600ea;
+        }
+
+        h2.article-header
+        {
+            color: #2f54a4;
+        }
+
+        h3.article-header
+        {
+            color: #509cda;
+        }
+
+        h4.article-header
+        {
+            color: #39395b;
+        }
+
+        .figure-footer
+        {
+            font-size: small;
+            font-style: italic;
+            color: #39395b;
+        }
+
+        .show
+        {
+            transition: opacity 400ms;
+        }
+
+        .hide
+        {
+            opacity: 0;
+        }
+    </style>
+    <script src="js/common.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body style="font-family: 'Garamond'">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <header class="text-center py-5">
+        <h2 style="font-size: 48px; font-weight: bold; text-shadow: 1px 1px #000000;"><code class="text-black"><span style="color: #0d6efd">{</span><span style="color: #6f42c1">Code</span>, <span style="color: #007B5E">Capitalism</span>, and <span style="color: #FFD700">Cooperation</span><span style="color: #0d6efd">}</span></code></h2>
+    </header>
+    <nav class="navbar navbar-expand-md">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse row" id="navbarNav">
+            <ul class="navbar-nav d-md-none">
+                <li class="nav-item">
+                    <a class="nav-link px-5" href="index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-5" href="articles.html">Articles</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-5" href="tools.html">Tools</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav d-none d-md-flex">
+                <li class="border-top border-bottom border-black col-5"></li>
+                <li class="nav-item border-start border-top border-bottom border-black col-1">
+                    <a class="nav-link  text-center" href="index.html">Home</a>
+                </li>
+                <li class="nav-item border-end border-start border-top border-bottom border-black col-1">
+                    <a class="nav-link  text-center" href="articles.html">Articles</a>
+                </li>
+                <li class="nav-item border-end border-start border-top border-bottom border-black col-1">
+                    <a class="nav-link  text-center" href="tools.html">Tools</a>
+                </li>
+                <li class="border-top border-bottom border-black col-5"></li>
+            </ul>
+        </div>
+    </nav>
+    <div id="content">
+<div class="container mt-3">
+    <h1 class="text-center">Expense Tracker</h1>
+    <h2 class="article-header">What does it do?</h2>
+    <p>
+        The <a href="https://docs.google.com/spreadsheets/d/1pTAAx2P9Jg0NaJn40ptq_PqKrx_j6Z5CRM7o5b2msGY/template/preview">Expense Tracker</a> is a Google Sheet that can track categories of expenses and incomes, collecting them into a view-by-month dashboard.
+        We'll describe each sheet, its purpose, and functionality.
+    </p>
+    <h3 class="article-header" id="tracker">Tracker</h3>
+    <p>
+        This is the starting sheet, and what we call the dashboard. The top-left beige box is the year. This is a dropdown that will automatically fill with years
+        that are available within the data. The top blue is the months of the year. This shows that each column underneath is an income/expense for that month.
+        The top green section is income and the bottom yellow is expenses. Each month's income, expense, and balance is calculated, as well as year-end totals.
+        At the bottom in purple is a pie graph of the selected month or all year. It will show percentages and how categories compare to each other.
+    </p>
+    <h3 class="article-header" id="expense_lookup">Expense Lookup</h3>
+    <p>
+        This sheet creates stats for a given query of expenses. You can search your expense by the following:
+        <ul>
+            <li>Start Date</li>
+            <li>End Date</li>
+            <li>Category</li>
+            <li>Merchant</li>
+        </ul>
+        There are also handy date presets that you can copy into the query fields to the right of the queries.
+        Both category and merchant automatically generate a dropdown based on your current categories and expense data.
+        Leaving a query box blank will accept expenses from all of the given query.
+    </p>
+    <p>
+        After entering the search criteria, you will see a list of expense underneath. These are the expenses that matched
+        your criteria. The graph to the right shows the amount spend on a given day, as well as show a running total throughout
+        the searched period.
+    </p>
+    <h3 class="article-header" id="income_lookup">Income Lookup</h3>
+    <p>
+        This sheet is identical to the Expense Lookup sheet, except that it searches through your income data instead of expenses.
+    </p>
+    <h3 class="article-header" id="coupons">Coupons/Gift Cards</h3>
+    <p>
+        This sheet is a handy place to remember any coupons and gift card balances. It even comes with highlighting the expiration date if the coupon
+        is close to expiration.
+    </p>
+    <h3 class="article-header" id="expenses">Expenses</h3>
+    <p>
+        This sheet is where your expense data will live. This data is what is used in other sheets to aggregate and display. We'll talk about how to
+        enter data below.
+    </p>
+    <h3 class="article-header" id="income">Income</h3>
+    <p>
+        This sheet is the same as the Expense sheet, except it stores income data.
+    </p>
+    <h3 class="article-header" id="api">API</h3>
+    <p>
+        This sheet contains handy information about the daily expense and income for each category. Each category has a named range, so other spreadsheets
+        that you own can reference this data much easier.
+    </p>
+    <h2 class="article-header">FAQ</h2>
+    <h3 class="article-header">How Do I Input Data?</h3>
+    <p>
+        The Expense and Income sheets are set up that way because they are filled in by using a Google Form. There is a form for expenses and another for income.
+        Generally don't try inputting data directly into these sheets, let the form do it. Occasionally, if you enter data out of chronological order, just sort the
+        date column A-Z. Having data out of order can have unexpected results on the Lookup sheets. These forms come with the Expense Tracker and should show up in
+        your Google Drive when you copy the template.
+    </p>
+    <h3 class="article-header">How Do I Copy This Tracker?</h3>
+    <p>
+        There is a link at the top of this page.
+        If you are logged into your Google account, you can make a copy of the template by clicking "Copy Template" in the upper-right.
+        This will automatically attach the forms as well. You can find these forms in your Google Drive.
+    </p>
+    <h3 class="article-header">Don't other services do this already, and automatically pull data?</h3>
+    <p>
+        Yes, there exist platforms that lets you link to your bank account and cards to automatically collect your expenses.
+        I found these platforms to be kind of clunky, and won't let me adjust any of the data to my liking. For example, if you
+        spent $150 at Target, some of it on groceries, some on clothes, and then some on a birthday gift, that might go in
+        as a $150 grocery item. However, you can manually separate that out into the correct categories to get a more accurate
+        view of your spending.
+    </p>
+    <p>
+        The forms should make this process easier. I find that adding a link to my phone's homescreen to the forms makes it easy
+        to access and submit.
+    </p>
+    <h3 class="article-header">Does this collect my data?</h3>
+    <p>
+        All the data that is submitted in the forms and that exist on the spreadsheet does not leave the spreadsheet. I do not collect
+        your data and I will not have access to any copies you make.
+    </p>
+    <h3 class="article-header">When I open the form, it's asking me to edit. How do I submit data?</h3>
+    <p>
+        Click the eye icon in the upper-right, with the tooltip "Preview" to open the actual form.
+    </p>
+    <h3 class="article-header">How do I change the categories?</h3>
+    <p>
+        There are a few places you'd have to touch to add/remove a category:
+        <ol>
+            <li>Add the category below an already existing one. If there's no room for another one, then create a new row and copy the functionality from the row above it.</li>
+            <li>Open up "Named Ranges" and look for either "Expenses" or "Income". Make sure these ranges are updated to include the new category.</li>
+            <li>Update the form to include the new category in its dropdown.</li>
+            <li>Expenses are color coded. To add a new color, look at the conditional formatting rules for each sheet that has colored category names and copy their behavior.</li>
+        </ol>
+    </p>
+    <h3 class="article-header">What if I screw something up? Do I lose all my data?</h3>
+    <p>
+        I recommend you archive a copy of the tracker every month into another folder, just in case. If your data is fine, but something else messed up beyond
+        repair, you can always copy the template again and then copy your data directly into the form sheets. The form is usually smart enough to just add new
+        data at the next blank line in the sheet.
+    </p>
+    <h4>What it looks like:</h4>
+    <iframe style="width: 100%; height: 600px;" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRjMA2TezMGxTp9VHwDEsx-LjqfcaMcCyzojDRszO8ddpvvuLoMGZTZAw6vqUrXSBZUiqUtzBXX3la9/pubhtml?widget=true&amp;headers=false"></iframe>
+</div>
+
+    </div>
+    <footer class="text-center" style="background: #e8e6e6;">
+        <div class="py-2">&copy; 2023 by Collin Moon</div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

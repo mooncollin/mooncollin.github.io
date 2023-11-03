@@ -76,3 +76,12 @@ const articles = [
         "images/ss.png"
     )
 ];
+
+const tools = [
+    new Tool(
+        "Expense Tracker",
+        "Track your expenses and income month-by-month with this handy Google Sheets dashboard",
+        "expense_tracker.html",
+        new Set(["Finance"])
+    )
+]

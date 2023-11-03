@@ -1,0 +1,100 @@
+{% extends "templates/base.html" %}
+{% block title %}Code, Capitalism, and Cooperation | Tools{% endblock %}
+{% block tools_active %}activ{% endblock %}
+{% block content %}
+<script>
+    function showTools(tag = null)
+    {
+        allToolsE.classList.replace("hide", "show");
+        allToolsE.replaceChildren();
+        var toolNum = 0;
+        var lastToolRow = null;
+        for (const toolE of allTools)
+        {
+            toolE.second.classList.replace("show", "hide");
+            if (tag == null || toolE.first.tags.has(tag))
+            {
+                if (toolNum % 4 == 0)
+                {
+                    lastToolRow = document.createElement("div");
+                    lastToolRow.classList.add("row", "mt-3");
+                    allToolsE.appendChild(lastToolRow);
+                    toolNum = 0;
+                }
+                setTimeout(() => {
+                    toolE.second.classList.replace("hide", "show");
+                }, 50);
+                lastToolRow.appendChild(toolE.second);
+                ++toolNum;
+            }
+        }
+    }
+
+    function switchTag(element)
+    {
+        if (!element.classList.contains("activ"))
+        {
+            for (const child of navList.children)
+            {
+                child.classList.remove("activ");
+            }
+
+            element.classList.add("activ");
+            if (element.innerText == 'All')
+            {
+                showTools();
+            }
+            else
+            {
+                showTools(element.innerText);
+            }
+        }
+    }
+
+    var toolTags = new Set();
+    for (const tool of tools)
+    {
+        for (const tag of tool.tags)
+        {
+            toolTags.add(tag);
+        }
+    }
+    toolTags = Array.from(toolTags);
+    toolTags.sort();
+</script>
+<section class="container my-3 mb-5">
+    <h2 class="text-center">Tools</h2>
+    <nav class="nav border-bottom pb-0" id="tool_nav">
+        <button class="nav-link ms-3 btn btn-link activ" onclick="switchTag(this)">All</button>
+    </nav>
+    <div id="allTools"></div>
+</section>
+<script>
+    const allToolsE = document.getElementById("allTools");
+    const allTools = []
+    
+    for (const tool of tools.reverse())
+    {
+        const toolColumn = document.createElement("div");
+        toolColumn.classList.add("col-md-3", "show");
+        const toolCard = generate_card(tool);
+        toolColumn.appendChild(toolCard);
+        allTools.push({first: tool, second: toolColumn});
+    }
+
+    const navList = document.getElementById("tool_nav");
+    for (const tag of toolTags)
+    {
+        const categoryLink = document.createElement("button");
+        categoryLink.classList.add("nav-link", "ms-3", "btn", "btn-link");
+        categoryLink.innerText = tag;
+        categoryLink.onclick = () => { switchTag(categoryLink); };
+
+        navList.appendChild(categoryLink);
+    }
+
+    addEventListener("load", (event) => {
+        showTools();
+    });
+</script>
+{% endblock %}

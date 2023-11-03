@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    {%- block head %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock %}</title>
+    <title>Code, Capitalism, and Cooperation | Tools</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <style>
         .nav-link
@@ -55,7 +54,6 @@
     </style>
     <script src="js/common.js"></script>
     <script src="js/main.js"></script>
-    {%- endblock %}
 </head>
 <body style="font-family: 'Garamond'">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
@@ -81,26 +79,118 @@
             <ul class="navbar-nav d-none d-md-flex">
                 <li class="border-top border-bottom border-black col-5"></li>
                 <li class="nav-item border-start border-top border-bottom border-black col-1">
-                    <a class="nav-link {% block home_active %}{% endblock %} text-center" href="index.html">Home</a>
+                    <a class="nav-link  text-center" href="index.html">Home</a>
                 </li>
                 <li class="nav-item border-end border-start border-top border-bottom border-black col-1">
-                    <a class="nav-link {% block articles_active %}{% endblock %} text-center" href="articles.html">Articles</a>
+                    <a class="nav-link  text-center" href="articles.html">Articles</a>
                 </li>
                 <li class="nav-item border-end border-start border-top border-bottom border-black col-1">
-                    <a class="nav-link {% block tools_active %}{% endblock %} text-center" href="tools.html">Tools</a>
+                    <a class="nav-link activ text-center" href="tools.html">Tools</a>
                 </li>
                 <li class="border-top border-bottom border-black col-5"></li>
             </ul>
         </div>
     </nav>
     <div id="content">
-    {%- block content %}
-    {%- endblock %}
+<script>
+    function showTools(tag = null)
+    {
+        allToolsE.classList.replace("hide", "show");
+        allToolsE.replaceChildren();
+        var toolNum = 0;
+        var lastToolRow = null;
+        for (const toolE of allTools)
+        {
+            toolE.second.classList.replace("show", "hide");
+            if (tag == null || toolE.first.tags.has(tag))
+            {
+                if (toolNum % 4 == 0)
+                {
+                    lastToolRow = document.createElement("div");
+                    lastToolRow.classList.add("row", "mt-3");
+                    allToolsE.appendChild(lastToolRow);
+                    toolNum = 0;
+                }
+                setTimeout(() => {
+                    toolE.second.classList.replace("hide", "show");
+                }, 50);
+                lastToolRow.appendChild(toolE.second);
+                ++toolNum;
+            }
+        }
+    }
+
+    function switchTag(element)
+    {
+        if (!element.classList.contains("activ"))
+        {
+            for (const child of navList.children)
+            {
+                child.classList.remove("activ");
+            }
+
+            element.classList.add("activ");
+            if (element.innerText == 'All')
+            {
+                showTools();
+            }
+            else
+            {
+                showTools(element.innerText);
+            }
+        }
+    }
+
+    var toolTags = new Set();
+    for (const tool of tools)
+    {
+        for (const tag of tool.tags)
+        {
+            toolTags.add(tag);
+        }
+    }
+    toolTags = Array.from(toolTags);
+    toolTags.sort();
+</script>
+<section class="container my-3 mb-5">
+    <h2 class="text-center">Tools</h2>
+    <nav class="nav border-bottom pb-0" id="tool_nav">
+        <button class="nav-link ms-3 btn btn-link activ" onclick="switchTag(this)">All</button>
+    </nav>
+    <div id="allTools"></div>
+</section>
+<script>
+    const allToolsE = document.getElementById("allTools");
+    const allTools = []
+    
+    for (const tool of tools.reverse())
+    {
+        const toolColumn = document.createElement("div");
+        toolColumn.classList.add("col-md-3", "show");
+        const toolCard = generate_card(tool);
+        toolColumn.appendChild(toolCard);
+        allTools.push({first: tool, second: toolColumn});
+    }
+
+    const navList = document.getElementById("tool_nav");
+    for (const tag of toolTags)
+    {
+        const categoryLink = document.createElement("button");
+        categoryLink.classList.add("nav-link", "ms-3", "btn", "btn-link");
+        categoryLink.innerText = tag;
+        categoryLink.onclick = () => { switchTag(categoryLink); };
+
+        navList.appendChild(categoryLink);
+    }
+
+    addEventListener("load", (event) => {
+        showTools();
+    });
+</script>
+
     </div>
     <footer class="text-center" style="background: #e8e6e6;">
-        {%- block footer %}
         <div class="py-2">&copy; 2023 by Collin Moon</div>
-        {%- endblock %}
     </footer>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

@@ -72,6 +72,9 @@
                 <li class="nav-item">
                     <a class="nav-link px-5" href="articles.html">Articles</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link px-5" href="tools.html">Tools</a>
+                </li>
             </ul>
             <ul class="navbar-nav d-none d-md-flex">
                 <li class="border-top border-bottom border-black col-5"></li>
@@ -81,14 +84,20 @@
                 <li class="nav-item border-end border-start border-top border-bottom border-black col-1">
                     <a class="nav-link  text-center" href="articles.html">Articles</a>
                 </li>
+                <li class="nav-item border-end border-start border-top border-bottom border-black col-1">
+                    <a class="nav-link  text-center" href="tools.html">Tools</a>
+                </li>
                 <li class="border-top border-bottom border-black col-5"></li>
             </ul>
         </div>
     </nav>
-    <div id="content" style="min-height: 100vh">
+    <div id="content">
 <section class="container my-3 mb-5">
     <h2 class="text-center">Featured Articles</h2>
     <div class="row" id="featured_articles">
+    </div>
+    <h2 class="text-center">Featured Tools</h2>
+    <div class="row" id="featured_tools">
     </div>
 </section>
 <script>
@@ -102,6 +111,19 @@
         featured_articles.appendChild(articleColumn);
         addEventListener("load", (event) => {
             articleColumn.classList.replace("hide", "show");
+        });
+    }
+
+    const featured_tools = document.getElementById("featured_tools");
+    for (const tool of tools.slice(Math.max(tools.length - 3, 0)).reverse())
+    {
+        const toolColumn = document.createElement("div");
+        toolColumn.classList.add("col-md-4", "hide");
+        const toolCard = generate_card(tool);
+        toolColumn.appendChild(toolCard);
+        featured_tools.appendChild(toolColumn);
+        addEventListener("load", (event) => {
+            toolColumn.classList.replace("hide", "show");
         });
     }
 </script>
