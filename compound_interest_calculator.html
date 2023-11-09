@@ -224,7 +224,7 @@
                             <div class="d-flex my-3">
                                 <div class="flex-row">
                                     <label for="income" class="form-label fw-bold">Current Gross Income</label>
-                                    <input id="income" type="number" step="0.01" class="form-control" min="0" required>
+                                    <input id="income" type="number" step="0.01" class="form-control" min="0">
                                 </div>
                             </div>
                             <div>
@@ -682,12 +682,15 @@
 
     function extraChange(src) {
         const extra401KSection = document.getElementById("401K");
+        const incomeInput = document.getElementById("income");
 
         if (src.value == "0") {
             extra401KSection.hidden = true;
+            incomeInput.required = false;
         }
         else if (src.value == "1") {
             extra401KSection.hidden = false;
+            incomeInput.required = true;
 
             const incomeIncreaseSection = document.getElementById("incomeIncreaseSection");
             const incomeIncrease = document.getElementById("incomeIncrease");
@@ -738,12 +741,15 @@
         if (extraChoice == "1") {
             extra401KSection.hidden = false;
 
+            const incomeInput = document.getElementById("income");
             const incomeIncreaseSection = document.getElementById("incomeIncreaseSection");
             const incomeIncreaseChoice = document.querySelector('input[name="incomeIncreaseChoice"]:checked').value;
 
             if (incomeIncreaseChoice != "0") {
                 incomeIncreaseSection.hidden = false;
             }
+
+            incomeInput.required = true;
         }
     });
 </script>
