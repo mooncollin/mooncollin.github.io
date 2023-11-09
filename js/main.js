@@ -69,7 +69,7 @@ function generate_card(obj) {
 const articles = [
     new Article(
         "Social Security Versus Private Security",
-        "A cost-benefit analysis of the public Social Security option versus private options",
+        "A cost-benefit analysis of the public Social Security option versus private options.",
         "ss_versus_private.html",
         new Set(["Government", "Finance"]),
         new Date(2023, 9, 29),
@@ -80,8 +80,14 @@ const articles = [
 const tools = [
     new Tool(
         "Expense Tracker",
-        "Track your expenses and income month-by-month with this handy Google Sheets dashboard",
+        "Track your expenses and income month-by-month with this handy Google Sheets dashboard.",
         "expense_tracker.html",
+        new Set(["Finance"])
+    ),
+    new Tool(
+        "Compound Interest Calculator",
+        "Calculate compound interest over time with a contribution and withdraw strategy.",
+        "compound_interest_calculator.html",
         new Set(["Finance"])
     )
 ]

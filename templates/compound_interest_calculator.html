@@ -1,0 +1,650 @@
+{% extends "templates/base.html" %}
+{% block title %}Compound Interest Calculator{% endblock %}
+{% block content %}
+<div class="container my-3">
+    <h1 class="text-center mb-4">Compound Interest Calculator</h1>
+    <div class="row">
+        <div class="col-3">
+            <form class="form-inline" id="calculator-form">
+                <h3>Step 1: Initial Investment</h3>
+                <hr>
+                <div class="d-flex my-3">
+                    <div class="flex-row">
+                        <label for="principal" class="form-label fw-bold">Initial Investment</label>
+                        <input id="principal" type="number" step="0.01" class="form-control" min="0">
+                        <div>Amount of money that you have available to invest initially.</div>
+                    </div>
+                </div>
+                <h3>Step 2: Contribute</h3>
+                <hr>
+                <div class="d-flex my-3">
+                    <div class="flex-row">
+                        <label for="contribution" class="form-label fw-bold">Monthly Contribution</label>
+                        <input id="contribution" type="number" step="0.01" class="form-control" min="0">
+                        <div>Amount that you plan to add to the principal every month.</div>
+                    </div>
+                </div>
+                <div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="contributionIncreaseChoice" id="contributionIncreaseNone" value="0" checked onchange="contributionChange(this)">
+                        <label class="form-check-label" for="contributionIncreaseNone">No Annual Increase</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="contributionIncreaseChoice" id="contributionIncreaseAmount" value="1" onchange="contributionChange(this)">
+                        <label class="form-check-label" for="contributionIncreaseAmount">Amount Annual Increase</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="contributionIncreaseChoice" id="contributionIncreasePercent" value="2" onchange="contributionChange(this)">
+                        <label class="form-check-label" for="contributionIncreasePercent">Percentage Annual Increase</label>
+                    </div>
+                </div>
+                <div class="d-flex my-3" id="contributionIncreaseSection" hidden>
+                    <div class="flex-row">
+                        <label for="contributionIncrease" class="form-label fw-bold">Annual Increase</label>
+                        <input id="contributionIncrease" type="number" step="0.01" class="form-control" min="0">
+                        <div>Annual increase from base contribution.</div>
+                    </div>
+                </div>
+                <div class="d-flex my-3">
+                    <div class="flex-row">
+                        <label for="contributionTime" class="form-label fw-bold">Length of Time in Years</label>
+                        <input id="contributionTime" type="number" class="form-control" min="0" required>
+                        <div>Length of time, in years, that you plan to save.</div>
+                    </div>
+                </div>
+                <h3>Step 3: Interest Rate</h3>
+                <hr>
+                <div class="d-flex my-3">
+                    <div class="flex-row">
+                        <label for="interest" class="form-label fw-bold">Estimated Starting Interest Rate</label>
+                        <input id="interest" type="number" step="0.01" class="form-control" min="0" required>
+                        <div>Your estimated annual interest rate before withdraws.</div>
+                    </div>
+                </div>
+                <div class="d-flex my-3">
+                    <div class="flex-row">
+                        <label for="endingInterest" class="form-label fw-bold">Estimated Ending Interest Rate</label>
+                        <input id="endingInterest" type="number" step="0.01" class="form-control" min="0">
+                        <div>Your estimated annual interest rate during withdraws.</div>
+                    </div>
+                </div>
+                <h3>Step 4: Withdraw</h3>
+                <hr>
+                <div class="d-flex my-3">
+                    <div class="flex-row">
+                        <label for="withdraw" class="form-label fw-bold">Monthly Withdraw</label>
+                        <input id="withdraw" type="number" step="0.01" class="form-control" min="0">
+                        <div>Amount that you plan to subtract from the investment every month after ending contributions.</div>
+                    </div>
+                </div>
+                <div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="withdrawIncreaseChoice" id="withdrawIncreaseNone" value="0" checked onchange="withdrawChange(this)">
+                        <label class="form-check-label" for="withdrawIncreaseNone">No Annual Increase</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="withdrawIncreaseChoice" id="withdrawIncreaseAmount" value="1" onchange="withdrawChange(this)">
+                        <label class="form-check-label" for="withdrawIncreaseAmount">Amount Annual Increase</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="withdrawIncreaseChoice" id="withdrawIncreasePercent" value="2" onchange="withdrawChange(this)">
+                        <label class="form-check-label" for="withdrawIncreasePercent">Percentage Annual Increase</label>
+                    </div>
+                </div>
+                <div class="d-flex my-3" id="withdrawIncreaseSection" hidden>
+                    <div class="flex-row">
+                        <label for="withdrawIncrease" class="form-label fw-bold">Annual Increase</label>
+                        <input id="withdrawIncrease" type="number" step="0.01" class="form-control" min="0">
+                        <div>Annual increase from base withdraw.</div>
+                    </div>
+                </div>
+                <div class="d-flex my-3">
+                    <div class="flex-row">
+                        <label for="withdrawTime" class="form-label fw-bold">Length of Time in Years</label>
+                        <input id="withdrawTime" type="number" class="form-control" min="0">
+                        <div>Length of time, in years, that you plan to withdraw after ending contributions.</div>
+                    </div>
+                </div>
+                <div class="dropup mb-5">
+                    <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                        Extras
+                    </button>
+                    <div class="dropdown-menu p-4">
+                        <p>Extra portfolio scenarios</p>
+                        <div class="mb-3 form-check">
+                            <input type="radio" class="form-check-input" name="extraChoice" id="extraNone" value="0" onchange="extraChange(this)" checked>
+                            <label for="extraNone" class="form-check-label">None</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="radio" class="form-check-input" name="extraChoice" id="extra401K" value="1" onchange="extraChange(this)">
+                            <label for="extra401K" class="form-check-label">401K</label>
+                        </div>
+                        <small class="mb-3">Try your investment with the taxes of a 401K</small>
+                        <div id="401K" hidden>
+                            <div class="d-flex my-3">
+                                <div class="flex-row">
+                                    <label for="income" class="form-label fw-bold">Current Gross Income</label>
+                                    <input id="income" type="number" step="0.01" class="form-control" min="0" required>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="incomeIncreaseChoice" id="incomeIncreaseNone" value="0" checked onchange="incomeChange(this)">
+                                    <label class="form-check-label" for="incomeIncreaseNone">No Annual Increase</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="incomeIncreaseChoice" id="incomeIncreaseAmount" value="1" onchange="incomeChange(this)">
+                                    <label class="form-check-label" for="incomeIncreaseAmount">Amount Annual Increase</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="incomeIncreaseChoice" id="incomeIncreasePercent" value="2" onchange="incomeChange(this)">
+                                    <label class="form-check-label" for="incomeIncreasePercent">Percentage Annual Increase</label>
+                                </div>
+                            </div>
+                            <div class="d-flex my-3" id="incomeIncreaseSection" hidden>
+                                <div class="flex-row">
+                                    <label for="incomeIncrease" class="form-label fw-bold">Annual Increase</label>
+                                    <input id="incomeIncrease" type="number" step="0.01" class="form-control" min="0">
+                                    <div>Annual increase from base income.</div>
+                                </div>
+                            </div>
+                            <div class="d-flex my-3">
+                                <div class="flex-row">
+                                    <label for="inflation" class="form-label fw-bold">Inflation</label>
+                                    <input id="inflation" type="number" step="0.01" class="form-control" min="0" value="2">
+                                    <div>The rate which tax brackets and deductions increase annually.</div>
+                                </div>
+                            </div>
+                            <div class="d-flex my-3">
+                                <div class="flex-row">
+                                    <label for="deductions" class="form-label fw-bold">Deductions</label>
+                                    <input id="deductions" type="number" step="0.01" class="form-control" min="0" value="27700">
+                                    <div>Your tax deductions. Standard deduction is $13,850 for single, and $27,700 for joint filers.</div>
+                                </div>
+                            </div>
+                            <p class="fw-bold mb-0">Tax Brackets</p>
+                            <table class="table table-hover" id="taxBrackets">
+                                <thead>
+                                    <th>Rate (%)</th>
+                                    <th>Max Bracket</th>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><input type="number" min="0" step="0.01" value="10"></td>
+                                        <td><input type="number" min="0" step="0.01" value="22000"></td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="number" min="0" step="0.01" value="12"></td>
+                                        <td><input type="number" min="0" step="0.01" value="89450"></td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="number" min="0" step="0.01" value="22"></td>
+                                        <td><input type="number" min="0" step="0.01" value="190750"></td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="number" min="0" step="0.01" value="24"></td>
+                                        <td><input type="number" min="0" step="0.01" value="364200"></td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="number" min="0" step="0.01" value="32"></td>
+                                        <td><input type="number" min="0" step="0.01" value="462500"></td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="number" min="0" step="0.01" value="35"></td>
+                                        <td><input type="number" min="0" step="0.01" value="693750"></td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="number" min="0" step="0.01" value="37"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" type="submit">Calculate</button>
+            </form>
+        </div>
+        <div class="col-9" hidden id="results">
+            <div class="container text-center">
+                <h2 id="results-header"></h2>
+                <canvas id="resultsChart"></canvas>
+                <button class="btn btn-primary fw-bold my-4" onclick="toggleTable(this);">SHOW TABLE</button>
+                <table class="table table-striped table-hover" id="calculate-table" hidden>
+                    <thead>
+                        <tr>
+                            <th>Years</th>
+                            <th>Future Value</th>
+                            <th>Total Contributions</th>
+                            <th name="calculate-table-401K-header" hidden>Income</th>
+                            <th name="calculate-table-401K-header" hidden>Marginal Tax Rate</th>
+                            <th name="calculate-table-401K-header" hidden>Taxes Owed</th>
+                            <th name="calculate-table-401K-header" hidden>Total Taxes Paid</th>
+                        </tr>
+                    </thead>
+                    <tbody id="calculate-table-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const USDollar = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+    })
+
+    var resultsChart = null;
+
+    function monthlyCompoundInterest(principal, rate, contribution) {
+        monthly_rate = rate / 12
+        if (monthly_rate == 0 || principal < 0) {
+            return principal + (contribution * 12);
+        }
+
+        return principal * Math.pow(1 + monthly_rate, 12) + ((contribution * (Math.pow(1 + monthly_rate, 12) - 1)) / monthly_rate);
+    }
+
+    function calculateIncomeTaxes(income, brackets) {
+        var taxes = 0;
+        var marginalBracket = 0;
+
+        for (var bracket of brackets) {
+            if (income <= 0) {
+                break;
+            }
+            taxes += Math.min(bracket[1], income) * bracket[0]
+            income -= bracket[1];
+            marginalBracket = bracket[0];
+        }
+
+        return [taxes, marginalBracket];
+    }
+
+    function calculate(event) {
+        event.preventDefault();
+
+        // Main parameters
+        var principal                   = document.getElementById("principal").value.length == 0 ? 0 : parseFloat(document.getElementById("principal").value);
+        var contribution                = document.getElementById("contribution").value.length == 0 ? 0 : parseFloat(document.getElementById("contribution").value);
+        var contributionIncreaseChoice  = document.querySelector('input[name="contributionIncreaseChoice"]:checked').value;
+        var contributionIncrease        = document.getElementById("contributionIncrease").value.length == 0 ? 0 : parseFloat(document.getElementById("contributionIncrease").value);
+        var contributionTime            = parseInt(document.getElementById("contributionTime").value);
+        var interestRate                = parseFloat(document.getElementById("interest").value) / 100;
+        
+        // Withdraw parameters
+        var withdraw                = document.getElementById("withdraw").value.length == 0 ? 0 : parseFloat(document.getElementById("withdraw").value);
+        var withdrawIncreaseChoice  = document.querySelector('input[name="withdrawIncreaseChoice"]:checked').value;
+        var withdrawIncrease        = document.getElementById("withdrawIncrease").value.length == 0 ? 0 : parseFloat(document.getElementById("withdrawIncrease").value);
+        var withdrawTime            = document.getElementById("withdrawTime").value.length == 0 ? 0 : parseInt(document.getElementById("withdrawTime").value);
+        var endingInterestRate      = document.getElementById("endingInterest").value.length == 0 ? 0 : parseFloat(document.getElementById("endingInterest").value) / 100;
+
+        // Extra scenario parameters
+        var extraChoice             = document.querySelector('input[name="extraChoice"]:checked').value;
+        var totalTaxesTableHeader   = document.getElementsByName("calculate-table-401K-header");
+
+        // 401K parameters
+        var income                  = parseFloat(document.getElementById("income").value);
+        var incomeIncreaseChoice    = document.querySelector('input[name="incomeIncreaseChoice"]:checked').value;
+        var incomeIncrease          = document.getElementById("incomeIncrease").value.length == 0 ? 0 : parseFloat(document.getElementById("incomeIncrease").value);
+        var inflation               = document.getElementById("inflation").value.length == 0 ? 0 : parseFloat(document.getElementById("inflation").value) / 100;
+        var deductions              = document.getElementById("deductions").value.length == 0 ? 0 : parseFloat(document.getElementById("deductions").value);
+        var taxBrackets = [];
+
+        for (var bracketRow of document.getElementById("taxBrackets").getElementsByTagName('tbody')[0].getElementsByTagName('tr')) {
+            var bracketRowData = bracketRow.getElementsByTagName('td');
+            if (bracketRowData.length == 1) {
+                taxBrackets.push([parseFloat(bracketRowData[0].children[0].value) / 100, 0]);
+            }
+            else {
+                taxBrackets.push([parseFloat(bracketRowData[0].children[0].value) / 100, parseFloat(bracketRowData[1].children[0].value)]);
+            }
+        }
+
+        if (extraChoice == "0") {
+            for (var element of totalTaxesTableHeader) {
+                element.hidden = true;
+            }
+        }
+        else if (extraChoice == "1") {
+            for (var element of totalTaxesTableHeader) {
+                element.hidden = false;
+            }
+        }
+
+        var calculateTable = document.getElementById("calculate-table");
+        var calculateTableBody = document.getElementById("calculate-table-body");
+
+        calculateTableBody.innerHTML = '';
+
+        var futureValueData = [principal];
+        var contributionData = [principal];
+        var yearsData = [0];
+        
+        var incomeData = [0];
+        var marginalTaxBracketData = [0];
+        var taxesOwedData = [0];
+        var taxesPaidData = [0];
+
+        var futureValue = principal;
+        var contributionValue = principal;
+        for (var year = 1; year <= contributionTime; ++year) {
+            contributionValue += contribution * 12;
+            futureValue = monthlyCompoundInterest(futureValue, interestRate, contribution);
+            
+            futureValueData.push(futureValue);
+            contributionData.push(contributionValue);
+            yearsData.push(year);
+
+            if (extraChoice == "1") {
+                const taxStatus = calculateIncomeTaxes(income - contribution * 12 - deductions, taxBrackets);
+                
+                incomeData.push(income - contribution * 12);
+                marginalTaxBracketData.push(taxStatus[1]);
+                taxesOwedData.push(taxStatus[0]);
+                taxesPaidData.push(taxesPaidData[taxesPaidData.length - 1] + taxStatus[0]);
+                
+                if (incomeIncreaseChoice == "1") {
+                    income += incomeIncrease;
+                }
+                else if (incomeIncreaseChoice == "2") {
+                    income *= 1 + incomeIncrease / 100;
+                }
+                
+                deductions *= 1 + inflation;
+
+                for (var idx = 0; idx < taxBrackets.length; ++idx) {
+                    taxBrackets[idx][1] *= 1 + inflation;
+                }
+            }
+
+            if (contributionIncreaseChoice == "1") {
+                contribution += contributionIncrease;
+            }
+            else if (contributionIncrease == "2") {
+                contribution *= 1 + contributionIncrease / 100;
+            }
+        }
+
+        for (var year = 1; year <= withdrawTime; ++year) {
+            var withdrawValue = contributionValue - (withdraw * 12 * year);
+            futureValue = monthlyCompoundInterest(futureValue, endingInterestRate, -withdraw);
+
+            futureValueData.push(futureValue);
+            contributionData.push(withdrawValue);
+            yearsData.push(year + contributionTime);
+
+            if (extraChoice == "1") {
+                const taxStatus = calculateIncomeTaxes(withdraw * 12 - deductions, taxBrackets);
+
+                incomeData.push(withdraw * 12);
+                marginalTaxBracketData.push(taxStatus[1]);
+                taxesOwedData.push(taxStatus[0]);
+                taxesPaidData.push(taxesPaidData[taxesPaidData.length - 1] + taxStatus[0]);
+
+                deductions *= 1 + inflation;
+
+                for (var idx = 0; idx < taxBrackets.length; ++idx) {
+                    taxBrackets[1] *= 1 + inflation;
+                }
+            }
+
+            if (withdrawIncreaseChoice == "1") {
+                withdraw += withdrawIncrease;
+            }
+            else if (withdrawIncreaseChoice == "2") {
+                withdraw *= 1 + withdrawIncrease / 100;
+            }
+        }
+
+        for (var idx = 0; idx < futureValueData.length; ++idx) {
+            var tableRow = document.createElement("tr");
+            var yearColumn = document.createElement("td");
+            var futureValueColumn = document.createElement("td");
+            var totalContributionsColumn = document.createElement("td");
+
+            yearColumn.innerText = `Year ${idx}`;
+            futureValueColumn.innerText = USDollar.format(futureValueData[idx]);
+            totalContributionsColumn.innerText = USDollar.format(contributionData[idx]);
+            tableRow.append(yearColumn, futureValueColumn, totalContributionsColumn);
+
+            if (extraChoice == "1") {
+                var incomeColumn = document.createElement("td");
+                var marginalTaxColumn = document.createElement("td");
+                var taxesOwedColumn = document.createElement("td");
+                var taxesPaidColumn = document.createElement("td");
+
+                incomeColumn.innerText = USDollar.format(incomeData[idx]);
+                marginalTaxColumn.innerText = `${(marginalTaxBracketData[idx] * 100).toFixed(2)}%`;
+                taxesOwedColumn.innerText = USDollar.format(taxesOwedData[idx]);
+                taxesPaidColumn.innerText = USDollar.format(taxesPaidData[idx]);
+
+                tableRow.append(incomeColumn, marginalTaxColumn, taxesOwedColumn, taxesPaidColumn);
+            }
+
+            calculateTableBody.append(tableRow);
+        }
+
+        var resultsSection = document.getElementById("results");
+        var resultsHeader = document.getElementById("results-header");
+
+        resultsHeader.innerHTML = '';
+
+        if (contributionTime > 0) {
+            resultsHeader.innerHTML = `<p>In <span class='fw-bold'>${contributionTime}</span> years, you will have <span class='fw-bold'>${USDollar.format(futureValueData[contributionTime])}</span></p>`;
+        }
+
+        if (withdrawTime > 0) {
+            resultsHeader.innerHTML += `<p>In <span class='fw-bold'>${contributionTime + withdrawTime}</span> years, you will have <span class='fw-bold'>${USDollar.format(futureValueData[futureValueData.length - 1])}</span></p>`;
+        }
+
+        if (resultsChart != null) {
+            resultsChart.destroy();
+        }
+
+        // This makes the chart look a little nicer;
+        marginalTaxBracketData[0] = null;
+
+        datasets = [
+        {
+            label: "Future Value",
+            data: futureValueData,
+            borderWidth: 2
+        },
+        {
+            label: "Total Contributions",
+            data: contributionData,
+            borderWidth: 2
+        }
+        ];
+
+        if (extraChoice == "1") {
+            datasets.push({
+                label: "Income",
+                data: incomeData,
+                borderWidth: 2
+            });
+            datasets.push({
+                label: "Marginal Tax Rate",
+                data: marginalTaxBracketData,
+                borderWidth: 2,
+                yAxisID: 'y1'
+            });
+            datasets.push({
+                label: "Taxes Owed",
+                data: taxesOwedData,
+                borderWidth: 2
+            });
+            datasets.push({
+                label: "Total Taxes Paid",
+                data: taxesPaidData,
+                borderWidth: 2
+            });
+        }
+
+        const chart = document.getElementById("resultsChart");
+        resultsChart = new Chart(chart, {
+            type: 'line',
+            data: {
+                labels: yearsData,
+                datasets: datasets
+            },
+            options: {
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: function(val, index) {
+                                return USDollar.format(val);
+                            }
+                        }
+                    },
+                    y1: {
+                        ticks: {
+                            callback: function(val, index) {
+                                return `${(val * 100).toFixed(2)}%`;
+                            }
+                        },
+                        position: 'right',
+                        display: extraChoice == "1",
+                        min: 0,
+                        max: taxBrackets[taxBrackets.length - 1][0]
+                    },
+                    x: {
+                        ticks: {
+                            callback: function(val, index) {
+                                return `Year ${val}`;
+                            }
+                        }
+                    }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                if (context.datasetIndex == 3) {
+                                    return `${context.dataset.label}: ${(context.parsed.y * 100).toFixed(2)}%`;
+                                }
+
+                                return context.dataset.label + ": " + USDollar.format(parseFloat(context.parsed.y));
+                            },
+                            title: function(context) {
+                                return `Year ${context[0].label}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        resultsSection.hidden = false;
+    }
+
+    function toggleTable(button) {
+        var calculateTable = document.getElementById("calculate-table");
+        if (button.textContent == "SHOW TABLE") {
+            button.textContent = "HIDE TABLE";
+            calculateTable.hidden = false;
+        }
+        else {
+            button.textContent = "SHOW TABLE";
+            calculateTable.hidden = true;
+        }
+    }
+
+    function contributionChange(src) {
+        const contributionIncreaseSection = document.getElementById("contributionIncreaseSection");
+        const contributionIncrease = document.getElementById("contributionIncrease");
+        contributionIncrease.value = '';
+        if (src.value == "0") {
+            contributionIncreaseSection.hidden = true;
+        }
+        else {
+            contributionIncreaseSection.hidden = false;
+        }
+    }
+
+    function withdrawChange(src) {
+        const withdrawIncreaseSection = document.getElementById("withdrawIncreaseSection");
+        const withdrawIncrease = document.getElementById("withdrawIncrease");
+        withdrawIncrease.value = '';
+        if (src.value == "0") {
+            withdrawIncreaseSection.hidden = true;
+        }
+        else {
+            withdrawIncreaseSection.hidden = false;
+        }
+    }
+
+    function extraChange(src) {
+        const extra401KSection = document.getElementById("401K");
+
+        if (src.value == "0") {
+            extra401KSection.hidden = true;
+        }
+        else if (src.value == "1") {
+            extra401KSection.hidden = false;
+
+            const incomeIncreaseSection = document.getElementById("incomeIncreaseSection");
+            const incomeIncrease = document.getElementById("incomeIncrease");
+
+            if (src.value == "0") {
+                incomeIncreaseSection.hidden = true;
+            }
+            else {
+                incomeIncreaseSection.hidden = false;
+            }
+        }
+    }
+
+    function incomeChange(src) {
+        const incomeIncreaseSection = document.getElementById("incomeIncreaseSection");
+        const incomeIncrease = document.getElementById("incomeIncrease");
+
+        incomeIncrease.value = '';
+        if (src.value == "0") {
+            incomeIncreaseSection.hidden = true;
+        }
+        else {
+            incomeIncreaseSection.hidden = false;
+        }
+    }
+
+    var form = document.getElementById("calculator-form");
+    form.addEventListener("submit", calculate);
+
+    addEventListener("load", (event) => {
+        const contributionIncreaseSection = document.getElementById("contributionIncreaseSection");
+        const contributionIncreaseChoice = document.querySelector('input[name="contributionIncreaseChoice"]:checked').value;
+
+        if (contributionIncreaseChoice != "0") {
+            contributionIncreaseSection.hidden = false;
+        }
+
+        const withdrawIncreaseSection = document.getElementById("withdrawIncreaseSection");
+        const withdrawIncreaseChoice = document.querySelector('input[name="withdrawIncreaseChoice"]:checked').value;
+
+        if (withdrawIncreaseChoice != "0") {
+            withdrawIncreaseSection.hidden = false;
+        }
+
+        const extraChoice = document.querySelector('input[name="extraChoice"]:checked').value;
+        const extra401KSection = document.getElementById("401K");
+
+        if (extraChoice == "1") {
+            extra401KSection.hidden = false;
+
+            const incomeIncreaseSection = document.getElementById("incomeIncreaseSection");
+            const incomeIncreaseChoice = document.querySelector('input[name="incomeIncreaseChoice"]:checked').value;
+
+            if (incomeIncreaseChoice != "0") {
+                incomeIncreaseSection.hidden = false;
+            }
+        }
+    });
+</script>
+{% endblock %}
