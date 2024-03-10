@@ -108,11 +108,14 @@
     <div id="content">
 <h1 class="text-center mt-4">Investment Calculator</h1>
 <div class="row">
-    <div>
-        <button type="button" class="btn btn-primary ms-5" data-bs-toggle="tooltip" data-bs-title="Save to File" onclick="save()">
+    <div class="col-3">
+        <button type="button" class="btn btn-primary ms-5" data-bs-toggle="tooltip" data-bs-title="Save to File" onclick="save_to_file()">
             <i class="bi bi-download"></i>
         </button>
-        <button type="button" class="btn btn-primary ms-5" data-bs-toggle="tooltip" data-bs-title="Load From File">
+        <button type="button" class="btn btn-primary ms-2" data-bs-toggle="tooltip" data-bs-title="Copy URL to Clipboard" onclick="save_to_clipboard()">
+            <i class="bi bi-clipboard"></i>
+        </button>
+        <button type="button" class="btn btn-primary ms-2" data-bs-toggle="tooltip" data-bs-title="Load From File">
             <input type="file" id="LoadFile" class="form-control-sm" onchange="load(this)">
             <i class="bi bi-upload"></i>
         </button>
@@ -370,11 +373,18 @@
             withdrawalOrder: WithdrawalStrategy.withdrawalOrder.map((obj) => obj.serialize())
         };
 
-        download(JSON.stringify(data_obj), "Investment Calculator Data.json", ".json");
+        return JSON.stringify(data_obj);
     }
 
-    document.getElementById("LoadFile").value = '';
-    function load(input) {
+    function save_to_clipboard() {
+        navigator.clipboard.writeText(window.location.href.split('?')[0] + "?data=" + btoa(save()));
+    }
+
+    function save_to_file() {
+        download(save(), "Investment Calculator Data.json", ".json");
+    }
+
+    function load_json(json) {
         const tax_type_table = {
             "TaxTable": TaxTable,
             "FlatTax": FlatTax
@@ -390,75 +400,80 @@
             "SocialSecurity": SocialSecurity
         };
         const account_type_order = [SocialSecurity, Annuity, HSA, TaxableBrokerage, Roth401K, RothIRA, Trad401K, TradIRA];
+        
+        const obj = JSON.parse(json);
+        const temp_accounts = [];
+        obj.translate_account = function(id) {
+            for (const [temp_id, account] of temp_accounts) {
+                if (id === temp_id) {
+                    return account;
+                }
+            }
+            return null;
+        };
 
+        global_info.deserialize(obj.global_info);
+
+        for (const tax_data of obj.taxes) {
+            const type = tax_type_table[tax_data.type] || null;
+            if (type != null) {
+                const tax = new type(tax_data.name);
+                tax.deserialize(tax_data);
+                tax.add();
+            }
+        }
+
+        for (const account_type of account_type_order) {
+            for (const account_data of obj.accounts) {
+                account_data.translate_account = obj.translate_account;
+                const type = account_type_table[account_data.type] || null;
+                if (type === account_type) {
+                    const account = new type(account_data.name);
+                    account.deserialize(account_data);
+                    temp_accounts.push([account_data.id, account]);
+                    account.add();
+                }
+            }
+        }
+        
+        for (const [idx, account_id] of enumerate(obj.contributionOrder)) {
+            const account = obj.translate_account(account_id);
+            if (account != null) {
+                const current_idx = ContributionStrategy.contributionOrder.findIndex((obj) => obj.account.id === account.id);
+                const move = idx - current_idx;
+                if (move != 0) {
+                    ContributionStrategy.shift_contribution(account, move);
+                }
+                // Need to set contribution again once funds are available
+                if (account instanceof AfterTaxInvestmentAccount) {
+                    if (account.isFixed.value) {
+                        const account_data = obj.accounts.find((acc) => acc.id === account_id);
+                        account.contribution.set_value(account_data.contribution);
+                    }
+                }
+            }
+        }
+
+        for (const [idx, account_id] of enumerate(obj.withdrawalOrder)) {
+            const account = obj.translate_account(account_id);
+            if (account != null) {
+                const current_idx = WithdrawalStrategy.withdrawalOrder.findIndex((obj) => obj.account.id === account.id);
+                const move = idx - current_idx;
+                if (move != 0) {
+                    WithdrawalStrategy.shift_withdrawal(account, move);
+                }
+            }
+        }
+    }
+
+    document.getElementById("LoadFile").value = '';
+    function load(input) {
         if (input != undefined) {
             if (input.files && input.files[0] && input.value.endsWith('.json')) {
                 const reader = new FileReader();
 
                 reader.onload = (e) => {
-                    const obj = JSON.parse(e.target.result);
-                    const temp_accounts = [];
-                    obj.translate_account = function(id) {
-                        for (const [temp_id, account] of temp_accounts) {
-                            if (id === temp_id) {
-                                return account;
-                            }
-                        }
-                        return null;
-                    };
-
-                    global_info.deserialize(obj.global_info);
-
-                    for (const tax_data of obj.taxes) {
-                        const type = tax_type_table[tax_data.type] || null;
-                        if (type != null) {
-                            const tax = new type(tax_data.name);
-                            tax.deserialize(tax_data);
-                            tax.add();
-                        }
-                    }
-
-                    for (const account_type of account_type_order) {
-                        for (const account_data of obj.accounts) {
-                            account_data.translate_account = obj.translate_account;
-                            const type = account_type_table[account_data.type] || null;
-                            if (type === account_type) {
-                                const account = new type(account_data.name);
-                                account.deserialize(account_data);
-                                temp_accounts.push([account_data.id, account]);
-                                account.add();
-                            }
-                        }
-                    }
-                    
-                    for (const [idx, account_id] of enumerate(obj.contributionOrder)) {
-                        const account = obj.translate_account(account_id);
-                        if (account != null) {
-                            const current_idx = ContributionStrategy.contributionOrder.findIndex((obj) => obj.account.id === account.id);
-                            const move = idx - current_idx;
-                            if (move != 0) {
-                                ContributionStrategy.shift_contribution(account, move);
-                            }
-                            // Need to set contribution again once funds are available
-                            if (account instanceof AfterTaxInvestmentAccount) {
-                                if (account.isFixed.value) {
-                                    const account_data = obj.accounts.find((acc) => acc.id === account_id);
-                                    account.contribution.set_value(account_data.contribution);
-                                }
-                            }
-                        }
-                    }
-
-                    for (const [idx, account_id] of enumerate(obj.withdrawalOrder)) {
-                        const account = obj.translate_account(account_id);
-                        if (account != null) {
-                            const current_idx = WithdrawalStrategy.withdrawalOrder.findIndex((obj) => obj.account.id === account.id);
-                            const move = idx - current_idx;
-                            if (move != 0) {
-                                WithdrawalStrategy.shift_withdrawal(account, move);
-                            }
-                        }
-                    }
+                    load_json(e.target.result);
                 };
 
                 reader.readAsText(input.files[0]);
@@ -3346,6 +3361,12 @@
     fica_med_tax.add();
 
     update_dashboard_table();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlData = urlParams.get("data");
+    if (urlData != null) {
+        load_json(atob(urlData));
+    }
 </script>
 
     </div>
