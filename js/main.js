@@ -74,7 +74,14 @@ const articles = [
         new Set(["Government", "Finance"]),
         new Date(2023, 9, 29),
         "images/ss.png"
-    )
+    ),
+    // new Article(
+    //     "The Power of Retirement Accounts",
+    //     "A look into how accounts like the 401K is a sweeter deal than otherwise expected",
+    //     "the_power_of_retirement_accounts.html",
+    //     new Set(["Finance"]),
+    //     new Date(2024, 2, 16)
+    // )
 ];
 
 const tools = [
@@ -88,6 +95,12 @@ const tools = [
         "Compound Interest Calculator",
         "Calculate compound interest over time with a contribution and withdraw strategy.",
         "compound_interest_calculator.html",
+        new Set(["Finance"])
+    ),
+    new Tool(
+        "Investment Calculator",
+        "Simulate investment withdraw strategies using different investment accounts, tax rates, and Social Security.",
+        "investment_calculator.html",
         new Set(["Finance"])
     )
 ]

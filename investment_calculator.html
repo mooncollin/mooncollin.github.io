@@ -1,0 +1,3361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Calculator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .nav-link
+        {
+            color: black;
+        }
+        .nav-link:hover, .activ
+        {
+            color: #6600ea;
+        }
+
+        .activ:focus
+        {
+            color: #6600ea;
+        }
+
+        h2.article-header
+        {
+            color: #2f54a4;
+        }
+
+        h3.article-header
+        {
+            color: #509cda;
+        }
+
+        h4.article-header
+        {
+            color: #39395b;
+        }
+
+        .figure-footer
+        {
+            font-size: small;
+            font-style: italic;
+            color: #39395b;
+        }
+
+        .show
+        {
+            transition: opacity 400ms;
+        }
+
+        .hide
+        {
+            opacity: 0;
+        }
+
+        .footer
+        {
+            background: #e8e6e6;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+        
+        input:invalid {
+            border:1px solid red;
+        }
+    </style>
+    <script src="js/common.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body class="d-flex flex-column vh-100" style="font-family: 'Garamond'">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <header class="text-center py-5">
+        <h2 style="font-size: 48px; font-weight: bold; text-shadow: 1px 1px #000000;"><code class="text-black"><span style="color: #0d6efd">{</span><span style="color: #6f42c1">Code</span>, <span style="color: #007B5E">Capitalism</span>, and <span style="color: #FFD700">Cooperation</span><span style="color: #0d6efd">}</span></code></h2>
+    </header>
+    <nav class="navbar navbar-expand-md">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse row" id="navbarNav">
+            <ul class="navbar-nav d-md-none">
+                <li class="nav-item">
+                    <a class="nav-link px-5" href="index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-5" href="articles.html">Articles</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-5" href="tools.html">Tools</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav d-none d-md-flex">
+                <li class="border-top border-bottom border-black col-5"></li>
+                <li class="nav-item border-start border-top border-bottom border-black col-1">
+                    <a class="nav-link  text-center" href="index.html">Home</a>
+                </li>
+                <li class="nav-item border-end border-start border-top border-bottom border-black col-1">
+                    <a class="nav-link  text-center" href="articles.html">Articles</a>
+                </li>
+                <li class="nav-item border-end border-top border-bottom border-black col-1">
+                    <a class="nav-link  text-center" href="tools.html">Tools</a>
+                </li>
+                <li class="border-top border-bottom border-black col-5"></li>
+            </ul>
+        </div>
+    </nav>
+    <div id="content">
+<h1 class="text-center mt-4">Investment Calculator</h1>
+<div class="row">
+    <div>
+        <button type="button" class="btn btn-primary ms-5" data-bs-toggle="tooltip" data-bs-title="Save to File" onclick="save()">
+            <i class="bi bi-download"></i>
+        </button>
+        <button type="button" class="btn btn-primary ms-5" data-bs-toggle="tooltip" data-bs-title="Load From File">
+            <input type="file" id="LoadFile" class="form-control-sm" onchange="load(this)">
+            <i class="bi bi-upload"></i>
+        </button>
+    </div>
+</div>
+<div class="mx-5 my-3 row">
+    <div class="col-3">
+        <div id="global_info">
+            <div class="card mb-5">
+                <div class="card-header">
+                    <h5 class="card-title d-inline-block ms-3 align-text-top">
+                        Global Information
+                    </h5>
+                </div>
+                <div class="card-body"></div>
+            </div>
+        </div>
+        <div id="accounts">
+            <div class="mb-5" id="add_account">
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="add_account_button" data-bs-toggle="dropdown" aria-expanded="false">Add Account</button>
+                    <ul class="dropdown-menu" aria-labelledby="add_account_button">
+                        <li><button class="dropdown-item" type="button" onclick="add_account_button(TaxableBrokerage)">Taxable Brokerage</button></li>
+                        <li><button class="dropdown-item" type="button" onclick="add_account_button(Trad401K)">Traditional 401K</button></li>
+                        <li><button class="dropdown-item" type="button" onclick="add_account_button(Roth401K)">Roth 401K</button></li>
+                        <li><button class="dropdown-item" type="button" onclick="add_account_button(TradIRA)">Traditional IRA</button></li>
+                        <li><button class="dropdown-item" type="button" onclick="add_account_button(RothIRA)">Roth IRA</button></li>
+                        <li><button class="dropdown-item" type="button" onclick="add_account_button(HSA)">HSA</button></li>
+                        <li><button class="dropdown-item" type="button" onclick="add_account_button(Annuity)">Annuity</button></li>
+                        <li><button class="dropdown-item" type="button" onclick="add_account_button(SocialSecurity)">Social Security</button></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="border-left border-right border-bottom col-9">
+        <nav>
+            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                <button class="nav-link active" id="nav-dashboard-tab" data-bs-toggle="tab" data-bs-target="#nav-dashboard" type="button" role="tab" aria-controls="nav-dashboard" aria-selected="true">Dashboard</button>
+                <button class="nav-link" id="nav-taxes-tab" data-bs-toggle="tab" data-bs-target="#nav-taxes" type="button" role="tab" aria-controls="nav-taxes" aria-selected="false">Tax Info</button>
+                <button class="nav-link" id="nav-contributions-tab" data-bs-toggle="tab" data-bs-target="#nav-contributions" type="button" role="tab" aria-controls="nav-contributions" aria-selected="false">Contribution Strategy</button>
+                <button class="nav-link" id="nav-withdrawals-tab" data-bs-toggle="tab" data-bs-target="#nav-withdrawals" type="button" role="tab" aria-controls="nav-withdrawals" aria-selected="false">Withdrawal Strategy</button>
+            </div>
+        </nav>
+        <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade show active" id="nav-dashboard" role="tabpanel" aria-labelledby="nav-dashboard-tab">
+                <canvas id="InvestmentByType"></canvas>
+                <table class="table table-striped table-hover" id="Dashboard-Table">
+                    <thead>
+                        <tr>
+                            <th>Age</th>
+                            <th>Future Value</th>
+                            <th>Monthly Expenses</th>
+                            <th>Monthly Income</th>
+                            <th>Leftover Income</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="tab-pane fade" id="nav-taxes" role="tabpanel" aria-labelledby="nav-taxes-tab">
+                <table class="table table-hover table-borderless table-responsive table-sm w-50" id="Tax-Sheet">
+                    <tbody>
+                        <tr>
+                            <td class="fw-bold text-center">W-2 Income</td>
+                            <td id="Tax-Sheet-W2">$0</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-center">Section 125 Deductions</td>
+                            <td id="Tax-Sheet-Section125"></td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-center">HSA Contributions</td>
+                            <td id="Tax-Sheet-HSA">$0</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td><hr></td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-center">FICA Taxable Income</td>
+                            <td id="Tax-Sheet-FICA">$0</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td><hr></td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-center">FICA Income Tax</td>
+                            <td id="Tax-Sheet-FICA-Tax">$0</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-center">IRA Contributions</td>
+                            <td id="Tax-Sheet-IRA">$0</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-center">401K Contributions</td>
+                            <td id="Tax-Sheet-401K">$0</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-center">Adjusted Gross Income</td>
+                            <td id="Tax-Sheet-AGI">$0</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-center">Deductions</td>
+                            <td id="Tax-Sheet-Deductions"></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td><hr></td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-center">Taxable Income</td>
+                            <td id="Tax-Sheet-Taxable">$0</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td><hr></td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-center">Income Tax</td>
+                            <td id="Tax-Sheet-Tax">$0</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td><hr></td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-center">After Tax Income</td>
+                            <td id="Tax-Sheet-After-Tax">$0</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div id="taxes">
+                    <div class="my-3" id="add_tax">
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="add_tax_button" data-bs-toggle="dropdown" aria-expanded="false">Add Tax</button>
+                            <ul class="dropdown-menu" aria-labelledby="add_tax_button">
+                                <li><button class="dropdown-item" type="button" onclick="add_tax_button(TaxTable)">Tax Table</button></li>
+                                <li><button class="dropdown-item" type="button" onclick="add_tax_button(FlatTax)">Flat Tax</button></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="nav-contributions" role="tabpanel" aria-labelledby="nav-contributions-tab">
+                <table class="table table-hover table-borderless table-responsive table-sm w-50" id="Contribution-Sheet">
+                    <tr>
+                        <td class="fw-bold text-center">After Tax Income</td>
+                        <td id="Contribution-Sheet-After-Tax">$0</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold text-center">Expenses</td>
+                        <td id="Contribution-Sheet-Expenses">$0</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td><hr></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold text-center">Leftover Income</td>
+                        <td id="Contribution-Sheet-Leftover">$0</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="tab-pane fade" id="nav-withdrawals" role="tabpanel" aria-labelledby="nav-withdrawals-tab">
+                <div id="Withdrawals"></div>
+                <canvas id="WithdrawalByType"></canvas>
+                <table class="table table-striped table-hover" id="Withdrawal-Table">
+                    <thead>
+                        <tr>
+                            <th>Age</th>
+                            <th>Monthly Expenses</th>
+                            <th>Amount Owed</th>
+                            <th>Taxes Paid</th>
+                            <th>Cumulative Taxes Paid</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>          
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const USDollar = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+    })
+    const USDollar_Rounded = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 0,
+        minimumFractionDigits: 0
+    })
+
+    function monthlyCompoundInterest(principal, rate, contribution, months = 12) {
+        const monthly_rate = rate / 12
+        if (monthly_rate == 0 || principal < 0) {
+            return principal + (contribution * months);
+        }
+
+        return principal * Math.pow(1 + monthly_rate, months) + ((contribution * (Math.pow(1 + monthly_rate, months) - 1)) / monthly_rate);
+    }
+
+    function generate_input_template(label, attributes, property, description = null) {
+        var template = null;
+        if (label != null) {
+            if (!Object.hasOwn(attributes, 'id')) {
+                throw new Error('Cannot have label without an id');
+            }
+            template = parseHTML(`
+            <div class="d-flex mb-2">
+                <div class="flex-row">
+                    <label for="${attributes.id}" class="form-label fw-bold">${label}</label>
+                </div>
+            </div>
+            `)
+        }
+        else {
+            template = parseHTML(`
+            <div class="d-flex mb-2">
+                <div class="flex-row">
+                </div>
+            </div>
+            `)
+        }
+        const input_node = create_input(property);
+
+        for (const [key, value] of Object.entries(attributes)) {
+            input_node.setAttribute(key, value);
+        }
+
+        template.children[0].appendChild(input_node);
+
+        if (description != null) {
+            const description_node = document.createElement("div");
+            description_node.innerText = description;
+            template.children[0].appendChild(description_node);
+        }
+
+        return template;
+    }
+
+    function save() {
+        const data_obj = {
+            global_info: global_info.serialize(),
+            accounts: accounts.map((acct) => acct.serialize()),
+            taxes: taxes.filter((tax) => tax != federal_income_tax_individual &&
+                                         tax != federal_income_tax_married &&
+                                         tax != fica_med_tax &&
+                                         tax != fica_ss_tax).map((tax) => tax.serialize()),
+            contributionOrder: ContributionStrategy.contributionOrder.map((obj) => obj.serialize()),
+            withdrawalOrder: WithdrawalStrategy.withdrawalOrder.map((obj) => obj.serialize())
+        };
+
+        download(JSON.stringify(data_obj), "Investment Calculator Data.json", ".json");
+    }
+
+    document.getElementById("LoadFile").value = '';
+    function load(input) {
+        const tax_type_table = {
+            "TaxTable": TaxTable,
+            "FlatTax": FlatTax
+        };
+        const account_type_table = {
+            "TaxableBrokerage":  TaxableBrokerage,
+            "Trad401K":  Trad401K,
+            "Roth401K":  Roth401K,
+            "TradIRA":  TradIRA,
+            "RothIRA":  RothIRA,
+            "HSA":  HSA,
+            "Annuity": Annuity,
+            "SocialSecurity": SocialSecurity
+        };
+        const account_type_order = [SocialSecurity, Annuity, HSA, TaxableBrokerage, Roth401K, RothIRA, Trad401K, TradIRA];
+
+        if (input != undefined) {
+            if (input.files && input.files[0] && input.value.endsWith('.json')) {
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    const obj = JSON.parse(e.target.result);
+                    const temp_accounts = [];
+                    obj.translate_account = function(id) {
+                        for (const [temp_id, account] of temp_accounts) {
+                            if (id === temp_id) {
+                                return account;
+                            }
+                        }
+                        return null;
+                    };
+
+                    global_info.deserialize(obj.global_info);
+
+                    for (const tax_data of obj.taxes) {
+                        const type = tax_type_table[tax_data.type] || null;
+                        if (type != null) {
+                            const tax = new type(tax_data.name);
+                            tax.deserialize(tax_data);
+                            tax.add();
+                        }
+                    }
+
+                    for (const account_type of account_type_order) {
+                        for (const account_data of obj.accounts) {
+                            account_data.translate_account = obj.translate_account;
+                            const type = account_type_table[account_data.type] || null;
+                            if (type === account_type) {
+                                const account = new type(account_data.name);
+                                account.deserialize(account_data);
+                                temp_accounts.push([account_data.id, account]);
+                                account.add();
+                            }
+                        }
+                    }
+                    
+                    for (const [idx, account_id] of enumerate(obj.contributionOrder)) {
+                        const account = obj.translate_account(account_id);
+                        if (account != null) {
+                            const current_idx = ContributionStrategy.contributionOrder.findIndex((obj) => obj.account.id === account.id);
+                            const move = idx - current_idx;
+                            if (move != 0) {
+                                ContributionStrategy.shift_contribution(account, move);
+                            }
+                            // Need to set contribution again once funds are available
+                            if (account instanceof AfterTaxInvestmentAccount) {
+                                if (account.isFixed.value) {
+                                    const account_data = obj.accounts.find((acc) => acc.id === account_id);
+                                    account.contribution.set_value(account_data.contribution);
+                                }
+                            }
+                        }
+                    }
+
+                    for (const [idx, account_id] of enumerate(obj.withdrawalOrder)) {
+                        const account = obj.translate_account(account_id);
+                        if (account != null) {
+                            const current_idx = WithdrawalStrategy.withdrawalOrder.findIndex((obj) => obj.account.id === account.id);
+                            const move = idx - current_idx;
+                            if (move != 0) {
+                                WithdrawalStrategy.shift_withdrawal(account, move);
+                            }
+                        }
+                    }
+                };
+
+                reader.readAsText(input.files[0]);
+            }
+        }
+    }
+
+    class GlobalInfo {
+        constructor() {
+            this.age = new int_property(30);
+            this.retirement_age = new int_property(65);
+            this.life_expectancy = new int_property(100);
+            this.income = new money_property(0, 2);
+            this.expenses = new money_property(0, 2);
+            this.inflation = new float_property(2);
+            this.data = {
+                ages: [],
+                expenses: []
+            }
+
+            const age_input = generate_input_template(
+                "Age",
+                {id: "age", min: 0, step: "any"},
+                this.age
+            );
+            const retirement_age_input = generate_input_template(
+                "Retirement Age",
+                {id: "retire_age", min: 0, step: "any"},
+                this.retirement_age
+            );
+            const life_exp_input = generate_input_template(
+                "Life Expectancy",
+                {id: "life_expectancy", min: 0, step: "any"},
+                this.life_expectancy
+            );
+            const income_input = generate_input_template(
+                "Annual Gross W-2 Income",
+                {id: "w2_income", min: 0, step: "any"},
+                this.income
+            );
+            const expenses_input = generate_input_template(
+                "Annual Expenses",
+                {id: "expenses", min: 0, step: "any"},
+                this.expenses
+            );
+            const inflation_input = generate_input_template(
+                "Inflation",
+                {id: "inflation", min: 0, step: "any"},
+                this.inflation,
+                "Percent increase in expenses. This also controls how tax tables and deductions increase over time."
+            );
+
+            const global_info_node = document.getElementById("global_info");
+            const global_info_node_body = global_info_node.getElementsByClassName("card-body")[0];
+            global_info_node_body.appendChild(age_input);
+            global_info_node_body.appendChild(retirement_age_input);
+            global_info_node_body.appendChild(life_exp_input);
+            global_info_node_body.appendChild(income_input);
+            global_info_node_body.appendChild(expenses_input);
+            global_info_node_body.append(inflation_input);
+
+            this.age.subscribe((value) => {
+                this.__recalc_ages()
+            });
+            this.retirement_age.subscribe((value) => {
+                this.__recalc_ages()
+            });
+            this.life_expectancy.subscribe((value) => {
+                this.__recalc_ages()
+            });
+            this.expenses.subscribe((value) => {
+                this.__recalc_expenses();
+            })
+            this.inflation.subscribe((value) => {
+                this.__recalc_expenses();
+            })
+
+            this.__recalc_ages();
+        }
+
+        __recalc_ages() {
+            this.data.ages.length = 0
+            for (let age = this.age.value; age < this.retirement_age.value; ++age) {
+                this.data.ages.push(age);
+            }
+            for (let age = Math.max(this.age.value, this.retirement_age.value); age <= this.life_expectancy.value; ++age) {
+                this.data.ages.push(age);
+            }
+            this.__recalc_expenses();
+        }
+
+        __recalc_expenses() {
+            this.data.expenses.length = this.data.ages.length;
+            for (const [idx, age] of enumerate(this.data.ages)) {
+                this.data.expenses[idx] = this.expenses.value * Math.pow(1 + (this.inflation.value / 100), age - this.age.value);
+            }
+        }
+
+        create_input(label, attributes, property, description = null) {
+            const container = parseHTML(`
+            <div class="d-flex mb-2">
+                <div class="flex-row">
+                    <label for="${attributes.id}" class="form-label fw-bold">${label}</label>
+                </div>
+            </div>
+            `);
+            const input = create_input(property);
+
+            for (const [key, value] of Object.entries(attributes)) {
+                input.setAttribute(key, value);
+            }
+
+            container.children[0].appendChild(input);
+
+            if (description != null) {
+                const description_node = document.createElement("div");
+                description_node.innerText = description;
+                container.children[0].appendChild(description_node);
+            }
+            return container;
+        }
+
+        serialize() {
+            return {
+                age: this.age.value,
+                retirement_age: this.retirement_age.value,
+                life_expectancy: this.life_expectancy.value,
+                income: this.income.value,
+                expenses: this.expenses.value,
+                inflation: this.inflation.value
+            }
+        }
+
+        deserialize(obj) {
+            this.age.set_value(obj.age);
+            this.retirement_age.set_value(obj.retirement_age);
+            this.life_expectancy.set_value(obj.life_expectancy);
+            this.income.set_value(obj.income);
+            this.expenses.set_value(obj.expenses);
+            this.inflation.set_value(obj.inflation);
+        }
+    }
+
+    function update_dashboard_table() {
+        const table_body = document.getElementById(`Dashboard-Table`).getElementsByTagName("tbody")[0];
+        table_body.innerHTML = '';
+
+        const inflation_rate = 1 + (global_info.inflation.value / 100);
+
+        var current_income = tax_sheet.after_tax() / 12;
+        
+        for (let idx = 0; idx < global_info.data.ages.length; ++idx) {
+            var current_expenses = global_info.data.expenses[idx] / 12;
+            var row = document.createElement("tr");
+            var age_column = document.createElement("td");
+            var value_column = document.createElement("td");
+            var expenses_column = document.createElement("td");
+            var income_column = document.createElement("td");
+            var leftover_column = document.createElement("td");
+
+            const value = investment_by_type_chart.data.datasets.map((data) => data.data[idx])
+                                                                .reduce((sum, rhs) => sum + rhs, 0);
+
+            age_column.innerText = `${global_info.data.ages[idx]}`;
+            value_column.innerText = USDollar.format(value);
+            expenses_column.innerText = USDollar.format(current_expenses);
+            income_column.innerText = USDollar.format(current_income);
+            leftover_column.innerText = USDollar.format(current_income - current_expenses);
+            row.append(age_column, value_column, expenses_column, income_column, leftover_column);
+            table_body.append(row);
+
+            current_income *= inflation_rate;
+
+            if (global_info.data.ages[idx] >= global_info.retirement_age.value) {
+                current_income *= 0;
+            }
+        }
+    }
+
+    const global_info = new GlobalInfo();
+
+    let global_id = 1;
+
+    class Configuration {
+        constructor(name) {
+            this.id = global_id++;
+            this.name = new str_property(name);
+            this.enabled = new boolean_property(true);
+        }
+
+        config_name() {
+            return "";
+        }
+
+        serialize() {
+            return {
+                type: this.constructor.name,
+                id: this.id,
+                name: this.name.value,
+                enabled: this.enabled.value
+            }
+        }
+
+        deserialize(obj) {
+            this.name.set_value(obj.name);
+            this.enabled.set_value(obj.enabled);
+        }
+    }
+
+    class EditableConfig extends Configuration {
+        constructor(name) {
+            super(name)
+
+            this.enabled.subscribe((value) => {
+                const card = document.querySelector(`#Config-${this.id}`);
+                if (card != null) {
+                    const card_body = card.querySelector(`#Body-${this.id}`);
+                    if (value) {
+                        card_body.style.pointerEvents = "";
+                        card_body.style.filter = "";
+                    }
+                    else {
+                        card_body.style.pointerEvents = "none";
+                        card_body.style.filter = "brightness(90%)";
+                    }
+
+                    const icons = card.getElementsByTagName("i");
+                    
+                    icons[1].hidden = !value;
+                    icons[2].hidden = value;
+                }
+            })
+        }
+
+        add() {}
+
+        delete() {
+            let node = document.getElementById(`Config-${this.id}`);
+            if (node != null) {
+                node.remove();
+            }
+        }
+
+        get_template() {
+            const template = parseHTML(`
+            <div class="card my-3" id="Config-${this.id}" idNum="${this.id}">
+                <div class="card-header"></div>
+                <div class="card-body" id="Body-${this.id}" style="${this.enabled.value ? "" : "pointer-events: none; filter: brightness(90%);"}">
+                    <div class="small"><i>${this.config_name()}</i></div>
+                </div>
+            </div>
+            `);
+
+            const delete_button = parseHTML(`
+            <button class="btn btn-danger-outline" type="button">
+                <i class="bi bi-trash3"></i>
+            </button>
+            `);
+            delete_button.addEventListener("click", (event) => {
+                if (confirm(`Are you sure you want to delete: ${this.name}?`) == true) {
+                    this.delete();
+                }
+            });
+
+            const hide_button = parseHTML(`
+            <button class="btn btn-secondary-outline" type="button">
+                <i class="bi bi-eye" ${this.enabled.value ? "" : "hidden"}></i>
+                <i class="bi bi-eye-slash" ${this.enabled.value ? "hidden" : ""}></i>
+            </button>
+            `);
+            
+            hide_button.addEventListener("click", (event) => {
+                this.enabled.set_value(!this.enabled.value);
+            });
+            
+            const edit_name_button = parseHTML(`
+            <button class="btn btn-secondary-outline" type="button">
+                <i class="bi bi-pencil-square small"></i>
+            </button>
+            `);
+            edit_name_button.addEventListener("click", (event) => {
+                const card_title = template.querySelector(`#Name-${this.id}`);
+                let spans = card_title.getElementsByTagName("span");
+                spans[1].hidden = spans[0].hidden;
+                spans[0].hidden = !spans[0].hidden;
+            });
+
+            const name_input = create_input(this.name);
+
+            const name_area = parseHTML(`
+            <h5 class="card-title d-inline-block ms-3 align-text-top" id="Name-${this.id}">
+                <span>${this.name}</span>
+                <span hidden></span>
+            </h5>
+            `);
+
+            this.name.subscribe((value) => {
+                name_area.children[0].textContent = `${value}`;
+            });
+            name_area.children[1].appendChild(name_input);
+            
+            template.children[0].appendChild(delete_button);
+            template.children[0].appendChild(hide_button);
+            template.children[0].appendChild(edit_name_button);
+            template.children[0].appendChild(name_area);
+            return template;
+        }
+
+        generate_input_template(label, attributes, property) {
+            var template = null;
+            if (label != null) {
+                switch (typeof(property.value)) {
+                    case "boolean":
+                        template = parseHTML(`
+                        <div class="form-check" id="${label}-${this.id}">
+                            <label class="form-check-label" for="${label}-${this.id}">${label}</label>
+                        </div>
+                        `);
+                        break;
+                    default:
+                        template = parseHTML(`
+                        <div class="d-flex mb-2">
+                            <div class="flex-row">
+                                <label for="${label}-${this.id}" class="form-label fw-bold">${label}</label>
+                            </div>
+                        </div>
+                        `)
+                }
+            }
+            const input_node = create_input(property);
+            input_node.setAttribute("id", `${label}-${this.id}`);
+
+            for (const [key, value] of Object.entries(attributes)) {
+                input_node.setAttribute(key, value);
+            }
+
+            if (template != null) {
+                switch (typeof(property.value)) {
+                    case "boolean":
+                        template.insertBefore(input_node, template.children[0]);
+                        break;
+                    default:
+                        template.children[0].appendChild(input_node);
+                }
+                return template;
+            }
+
+            return input_node;
+        }
+
+        generate_select_template(label, attributes, property, ...values) {
+            const template = parseHTML(`
+            <div class="d-flex mb-2">
+                <div class="flex-row">
+                    <label for="${label}-${this.id}" class="form-label fw-bold">${label}</label>
+                </div>
+            </div>
+            `)
+            const select_node = create_select(property, ...values);
+            select_node.setAttribute("id", `${label}-${this.id}`);
+
+            for (const [key, value] of Object.entries(attributes)) {
+                select_node.setAttribute(key, value);
+            }
+
+            template.children[0].appendChild(select_node);
+
+            return template;
+        }
+    }
+
+    class Account extends EditableConfig {
+        constructor(name) {
+            super(name)
+        }
+
+        delete() {
+            const idx = accounts.findIndex((account) => account.id === this.id);
+            if (idx != -1) {
+                accounts.splice(idx, 1);
+            }
+
+            super.delete();
+        }
+        
+        add() {
+            super.add();
+            const node = this.get_template();
+            accounts_node.insertBefore(node, add_account_node);
+            accounts.push(this);
+        }
+
+        update_values() {}
+        update_contributions() {}
+        update_ages() {}
+    }
+
+    class Annuity extends Account {
+        constructor(name) {
+            super(name)
+            this.start_age = new int_property(65);
+            this.start_benefit = new money_property(0, 2);
+            this.indexed_inflation = new boolean_property(false);
+            this.data = {
+                withdrawals: []
+            }
+
+            this.data.withdrawals.length = global_info.data.ages.length;
+            this.data.withdrawals.fill(0);
+
+            this.enabled.subscribe((value) => {
+                const withdrawal_node = document.getElementById(`Withdrawal-Body-${this.id}`);
+                if (withdrawal_node != null) {
+                    if (value) {
+                        withdrawal_node.style.pointerEvents = "";
+                        withdrawal_node.style.filter = "";
+                    }
+                    else {
+                        withdrawal_node.style.pointerEvents = "none";
+                        withdrawal_node.style.filter = "brightness(90%)";
+                    }
+                }
+                this.update_values();
+            });
+
+            this.start_age.subscribe((value) => {
+                this.update_values();
+            });
+
+            this.start_benefit.subscribe((value) => {
+                const benefit_node = document.getElementById(`Withdrawal-Benefit-${this.id}`);
+                if (benefit_node != null) {
+                    benefit_node.innerText = USDollar.format(value);
+                }
+                this.update_values();
+            });
+
+            this.name.subscribe((value) => {
+                const name = document.getElementById(`Withdrawal-Name-${this.id}`);
+                if (name != null) {
+                    name.textContent = `${value}`;
+                }
+            });
+
+            this.indexed_inflation.subscribe((value) => {
+                this.update_values();
+            });
+        }
+
+        serialize() {
+            const obj = super.serialize();
+
+            obj.start_age = this.start_age.value;
+            obj.start_benefit = this.start_benefit.value;
+            obj.indexed_inflation = this.indexed_inflation.value;
+
+            return obj;
+        }
+
+        deserialize(obj) {
+            super.deserialize(obj);
+
+            this.start_age.set_value(obj.start_age);
+            this.start_benefit.set_value(obj.start_benefit);
+            this.indexed_inflation.set_value(obj.indexed_inflation);
+        }
+
+        get_template() {
+            const template = super.get_template();
+    
+            const body = template.getElementsByClassName("card-body")[0];
+            body.appendChild(this.generate_input_template(
+                "Starting Age",
+                {step: 1, min: 0},
+                this.start_age
+            ));
+            body.appendChild(this.generate_input_template(
+                "Starting Monthly Benefit",
+                {step: "any", min: 0},
+                this.start_benefit
+            ));
+            body.appendChild(this.generate_input_template(
+                "Indexed to Inflation",
+                {},
+                this.indexed_inflation
+            ));
+
+            return template;
+        }
+
+        get_withdrawal_template() {
+            const template = parseHTML(`
+            <div class="card my-3" id="Withdrawal-${this.id}" idNum="${this.id}" type="${this.constructor.name}">
+                <div class="card-header">
+                    <h5 class="card-title d-inline-block ms-3 align-text-top">
+                        <span id="Withdrawal-Name-${this.id}">${this.name}</span>
+                    </h5>
+                </div>
+                <div class="card-body" id="Withdrawal-Body-${this.id}" style="${this.enabled.value ? "" : "pointer-events: none; filter: brightness(90%);"}">
+                    <div class="small"><i>${this.config_name()}</i></div>
+                    <div class="fw-bold">Monthly Benefit Amount:</div>
+                    <div id="Withdrawal-Benefit-${this.id}">${USDollar.format(this.start_benefit.value)}</div>
+                </div>
+            </div>
+            `);
+
+            return template;
+        }
+
+        add() {
+            super.add();
+            WithdrawalStrategy.add_withdrawal(this);
+        }
+
+        delete() {
+            WithdrawalStrategy.remove_withdrawal(this);
+            super.delete();
+        }
+
+        config_name() {
+            return "Annuity";
+        }
+
+        update_ages() {
+            this.data.withdrawals.length = global_info.data.ages.length;
+        }
+
+        update_values() {
+            for (let idx = 0; idx < global_info.data.ages.length; ++idx) {
+                this.data.withdrawals[idx] = WithdrawalStrategy.calculate_withdrawal(this, idx);
+            }
+            WithdrawalStrategy.after_update_values(this);
+        }
+
+        calculate_withdrawal(expense, idx) {
+            if (!this.enabled.value) {
+                return 0;
+            }
+            
+            const age = global_info.data.ages[idx];
+            if (age < this.start_age.value) {
+                return 0;
+            }
+
+            if (this.indexed_inflation.value) {
+                return this.start_benefit.value * Math.pow(1 + global_info.inflation.value / 100, age - this.start_age.value);
+            }
+
+            return this.start_benefit.value;
+        }
+    }
+
+    class SocialSecurity extends Annuity {
+        constructor(name) {
+            super(name);
+            this.indexed_inflation.set_value(true);
+        }
+
+        config_name() {
+            return "Social Security";
+        }
+    }
+
+    class TabbedAccount extends Account {
+        constructor(name) {
+            super(name)
+        }
+
+        delete() {
+            let node = document.getElementById(`nav-Config-${this.id}-tab`);
+            if (node != null) {
+                node.remove();
+            }
+            node = document.getElementById(`nav-Config-${this.id}`);
+            if (node != null) {
+                node.remove();
+            }
+
+            super.delete();
+        }
+
+        add() {
+            super.add();
+            const tabs = document.getElementById("nav-tab");
+            const tab = parseHTML(`<button class="nav-link" id="nav-Config-${this.id}-tab" data-bs-toggle="tab" data-bs-target="#nav-Config-${this.id}" type="button" role="tab" aria-controls="nav-Config-${this.id}" aria-selected="false">${this.name}</button>`);
+            this.name.subscribe((value) => {
+                tab.textContent = value;
+            });
+            tabs.appendChild(tab);
+
+            const tab_content = document.getElementById("nav-tabContent");
+            const content = parseHTML(`
+            <div class="tab-pane fade" id="nav-Config-${this.id}" role="tabpanel" aria-labelledby="nav-Config-${this.id}-tab">
+            </div>
+            `);
+            tab_content.appendChild(content);
+        }
+    }
+
+    class InvestmentAccount extends TabbedAccount {
+        constructor(name) {
+            super(name)
+            this.balance = new money_property(0, 2);
+            this.contribution = new money_property(0, 2);
+            this.rate = new float_property(0);
+            this.retirement_rate = new float_property(0);
+            this.data = {
+                values: [],
+                contributions: [],
+                total_contributions: [],
+                withdrawals: [],
+                conversions: []
+            }
+            this.chart = null;
+            this.withdrawalChoice = new int_property(0);
+            this.withdrawal = new money_property(0, 2);
+            this.maxWithdrawal = new money_property(0, 2);
+            this.withdrawalPercentage = new float_property(0);
+            this.__table_body = null;
+
+            this.data.values.length = global_info.data.ages.length;
+            this.data.values.fill(0);
+
+            this.data.contributions.length = global_info.data.ages.length;
+            this.data.contributions.fill(0);
+
+            this.data.total_contributions.length = global_info.data.ages.length;
+            this.data.total_contributions.fill(0);
+
+            this.data.withdrawals.length = global_info.data.ages.length;
+            this.data.withdrawals.fill(0);
+
+            this.data.conversions.length = global_info.data.ages.length;
+            this.data.conversions.fill(0);
+
+            this.balance.subscribe((value) => {
+                this.update_values();
+            });
+
+            this.contribution.subscribe((value) => {
+                this.update_contributions();
+                this.update_values();
+            });
+
+            this.rate.subscribe((value) => {
+                this.update_values();
+            });
+
+            this.retirement_rate.subscribe((value) => {
+                this.update_values();
+            });
+
+            this.withdrawalChoice.subscribe((value) => {
+                if (this.__table_body != null) {
+                    const withdrawalInput = document.getElementById(`Monthly Withdrawal-${this.id}`).parentElement.parentElement;
+                    const maxWithdrawalInput = document.getElementById(`Monthly Max Withdrawal-${this.id}`).parentElement.parentElement;
+                    const percentageInput = document.getElementById(`Percentage of Expenses-${this.id}`).parentElement.parentElement;
+
+                    if (withdrawalInput != null && maxWithdrawalInput != null && percentageInput != null) {
+                        if (value == 0) {
+                            withdrawalInput.hidden = false;
+                            percentageInput.hidden = true;
+                            maxWithdrawalInput.hidden = true;
+
+                            const radio = document.getElementById(`Withdrawal-Option-Fixed-${this.id}`);
+                            if (!radio.checked) {
+                                radio.checked = true;
+                            }
+                        }
+                        else if (value == 1) {
+                            withdrawalInput.hidden = true;
+                            percentageInput.hidden = false;
+                            maxWithdrawalInput.hidden = true;
+
+                            const radio = document.getElementById(`Withdrawal-Option-Percentage-${this.id}`);
+                            if (!radio.checked) {
+                                radio.checked = true;
+                            }
+                        }
+                        else if (value == 2) {
+                            withdrawalInput.hidden = true;
+                            percentageInput.hidden = true;
+                            maxWithdrawalInput.hidden = false;
+
+                            const radio = document.getElementById(`Withdrawal-Option-Expense-${this.id}`);
+                            if (!radio.checked) {
+                                radio.checked = true;
+                            }
+                        }
+                    }
+                }
+
+                this.update_values();
+            })
+
+            this.withdrawal.subscribe((value) => {
+                this.update_values();
+            });
+
+            this.maxWithdrawal.subscribe((value) => {
+                this.update_values();
+            });
+
+            this.withdrawalPercentage.subscribe((value) => {
+                this.update_values();
+            });
+
+            this.enabled.subscribe((value) => {
+                const withdrawal_node = document.getElementById(`Withdrawal-Body-${this.id}`);
+                if (withdrawal_node != null) {
+                    if (value) {
+                        withdrawal_node.style.pointerEvents = "";
+                        withdrawal_node.style.filter = "";
+                    }
+                    else {
+                        withdrawal_node.style.pointerEvents = "none";
+                        withdrawal_node.style.filter = "brightness(90%)";
+                    }
+                }
+                ContributionStrategy.update_contributions(this);
+                this.update_values();
+            });
+        }
+
+        serialize() {
+            const obj = super.serialize();
+
+            obj.balance = this.balance.value;
+            obj.contribution = this.contribution.value;
+            obj.rate = this.rate.value;
+            obj.retirement_rate = this.retirement_rate.value;
+            obj.withdrawalChoice = this.withdrawalChoice.value;
+            switch (obj.withdrawalChoice) {
+                case 0:
+                    obj.withdrawal = this.withdrawal.value;
+                    break;
+                case 1:
+                    obj.withdrawal = this.withdrawalPercentage.value;
+                    break;
+                case 2:
+                    obj.withdrawal = this.maxWithdrawal.value;
+                    break;
+            }
+            
+            return obj;
+        }
+
+        deserialize(obj) {
+            super.deserialize(obj);
+            this.balance.set_value(obj.balance);
+            this.contribution.set_value(obj.contribution);
+            this.rate.set_value(obj.rate);
+            this.retirement_rate.set_value(obj.retirement_rate);
+            this.withdrawalChoice.set_value(obj.withdrawalChoice);
+            switch (this.withdrawalChoice.value) {
+                case 0:
+                    this.withdrawal.set_value(obj.withdrawal);
+                    break;
+                case 1:
+                    this.withdrawalPercentage.set_value(obj.withdrawal);
+                    break;
+                case 2:
+                    this.maxWithdrawal.set_value(obj.withdrawal);
+            }
+        }
+
+        calculate_withdrawal(expense, idx) {
+            let amount = 0;
+            if (this.withdrawalChoice.value == 0) {
+                amount = this.withdrawal.value;
+            }
+            else
+            if (this.withdrawalChoice.value == 1) {
+                amount = (this.withdrawalPercentage.value / 100) * (global_info.data.expenses[idx] / 12);
+            }
+            else
+            if (this.withdrawalChoice.value == 2) {
+                amount = expense;
+                if (this.maxWithdrawal.value != 0) {
+                    amount = Math.min(amount, this.maxWithdrawal.value);
+                }
+            }
+
+            if (idx === 0) {
+                return Math.min(this.balance.value / 12, amount);
+            }
+
+            return Math.min(this.data.values[idx - 1] / 12, amount);
+        }
+
+        calculate_conversion(deduction, idx) {
+            return 0;
+        }
+
+        delete() {
+            const idx = investment_by_type_chart.data.datasets.findIndex((dataset) => dataset.id === this.id);
+            if (idx != -1) {
+                investment_by_type_chart.data.datasets.splice(idx, 1);
+                investment_by_type_chart.update();
+            }
+
+            ContributionStrategy.remove_contribution(this);
+            WithdrawalStrategy.remove_withdrawal(this);
+            this.contribution.set_value(0);
+            super.delete();
+        }
+
+        get_template() {
+            const account_template = super.get_template();
+            const body = account_template.getElementsByClassName("card-body")[0];
+            body.appendChild(this.generate_input_template(
+                "Current Balance",
+                {step: "any", min: 0},
+                this.balance
+            ));
+            body.appendChild(this.generate_input_template(
+                "Rate of Return",
+                {step: "any", min: 0},
+                this.rate
+            ));
+            body.appendChild(this.generate_input_template(
+                "Rate of Return In Retirement",
+                {step: "any", min: 0},
+                this.retirement_rate
+            ));
+
+            return account_template;
+        }
+
+        get_withdrawal_template() {
+            const template = parseHTML(`
+            <div class="card my-3" id="Withdrawal-${this.id}" idNum="${this.id}" type="${this.constructor.name}">
+                <div class="card-header">
+                    <h5 class="card-title d-inline-block ms-3 align-text-top">
+                        <span id="Withdrawal-Name-${this.id}">${this.name}</span>
+                    </h5>
+                </div>
+                <div class="card-body" id="Withdrawal-Body-${this.id}" style="${this.enabled.value ? "" : "pointer-events: none; filter: brightness(90%);"}">
+                    <div class="small"><i>${this.config_name()}</i></div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="Withdrawal-Options-${this.id}" id="Withdrawal-Option-Fixed-${this.id}" value="0">
+                        <label class="form-check-label" for="Withdrawal-Option-Fixed-${this.id}">Fixed Amount</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="Withdrawal-Options-${this.id}" id="Withdrawal-Option-Percentage-${this.id}" value="1">
+                        <label class="form-check-label" for="Withdrawal-Option-Percentage-${this.id}">Percentage</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="Withdrawal-Options-${this.id}" id="Withdrawal-Option-Expense-${this.id}" value="2">
+                        <label class="form-check-label" for="Withdrawal-Option-Expense-${this.id}">Leftover Expenses</label>
+                    </div>
+                </div>
+            </div>
+            `);
+
+            this.name.subscribe((value) => {
+                const name = document.getElementById(`Withdrawal-Name-${this.id}`);
+                name.textContent = `${value}`;
+            });
+            
+            const choices = template.getElementsByTagName("input");
+            for (const choice of choices) {
+                choice.addEventListener('change', (e) => {
+                    this.withdrawalChoice.set_value(e.target.value);
+                });
+            }
+            choices[this.withdrawalChoice.value].checked = true;
+
+            const withdrawalInput = this.generate_input_template(
+                "Monthly Withdrawal",
+                {step: "any", min: 0},
+                this.withdrawal
+            );
+            withdrawalInput.hidden = this.withdrawalChoice.value != 0;
+
+            const percentageInput = this.generate_input_template(
+                "Percentage of Expenses",
+                {step: "any", min: 0},
+                this.withdrawalPercentage
+            );
+            percentageInput.hidden = this.withdrawalChoice.value != 1;
+
+            const maxWithdrawalInput = this.generate_input_template(
+                "Monthly Max Withdrawal",
+                {step: "any", min: 0},
+                this.maxWithdrawal
+            );
+            maxWithdrawalInput.hidden = this.withdrawalChoice.value != 2;
+
+            const card_body = template.getElementsByClassName("card-body")[0];
+            card_body.append(withdrawalInput, percentageInput, maxWithdrawalInput)
+
+            const outer = parseHTML(`
+            <div class="row">
+                <div class="col-1 d-grid mt-5">
+                    <button class="btn btn-outline-secondary btn-sm h-50"><i class="bi bi-arrow-up"></i></button>
+                    <button class="btn btn-outline-secondary btn-sm h-50"><i class="bi bi-arrow-down"></i></button>
+                </div>
+                <div class="col-11">
+                </div>
+            </div>
+            `);
+
+            outer.children[0].children[0].addEventListener('click', () => {
+                WithdrawalStrategy.shift_withdrawal(this, -1);
+            });
+            outer.children[0].children[1].addEventListener('click', () => {
+                WithdrawalStrategy.shift_withdrawal(this, 1);
+            });
+            outer.children[1].appendChild(template);
+
+            return outer;
+        }
+
+        get_contribution_template() {
+            const template = parseHTML(`
+            <div class="card my-3" id="Contribution-${this.id}" idNum="${this.id}" type="${this.constructor.name}">
+                <div class="card-header">
+                    <h5 class="card-title d-inline-block ms-3 align-text-top">
+                        <span id="Contribition-Name-${this.id}">${this.name}</span>
+                    </h5>
+                </div>
+                <div class="card-body" id="Contribution-Body-${this.id}" style="${this.enabled.value ? "" : "pointer-events: none; filter: brightness(90%);"}">
+                    <div class="small"><i>${this.config_name()}</i></div>
+                </div>
+            </div>
+            `);
+
+            const card_body = template.getElementsByClassName("card-body")[0];
+            this.enabled.subscribe((value) => {
+                if (value) {
+                    card_body.style.pointerEvents = "";
+                    card_body.style.filter = "";
+                }
+                else {
+                    card_body.style.pointerEvents = "none";
+                    card_body.style.filter = "brightness(90%)";
+                }
+            });
+
+            this.name.subscribe((value) => {
+                const name = document.getElementById(`Contribition-Name-${this.id}`);
+                name.textContent = `${value}`;
+            });
+
+            return template;
+        }
+
+        add() {
+            super.add();
+            const tab_content = document.getElementById(`nav-Config-${this.id}`);
+            const content = parseHTML(`
+            <div>
+                <canvas id="Config-${this.id}-Chart"></canvas>
+                <table class="table table-striped table-hover" id="Config-${this.id}-Table">
+                    <thead>
+                        <tr>
+                            <th>Age</th>
+                            <th>Total Contributions</th>
+                            <th>Future Value</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            `);
+            tab_content.appendChild(content);
+            const chart_node = document.getElementById(`Config-${this.id}-Chart`);
+            this.chart = new Chart(chart_node, {
+                type: 'line',
+                data: {
+                    labels: global_info.data.ages,
+                    datasets: [
+                        {
+                            label: "Total Contributions",
+                            data: this.data.total_contributions,
+                            borderWidth: 2
+                        },
+                        {
+                            label: "Future Value",
+                            data: this.data.values,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(val, index) {
+                                    return USDollar.format(val);
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ": " + USDollar.format(parseFloat(context.parsed.y));
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            this.name.subscribe((value) => {
+                for (const dataset of investment_by_type_chart.data.datasets) {
+                    if (dataset.id === this.id) {
+                        dataset.label = value;
+                        investment_by_type_chart.update();
+                        break;
+                    }
+                }
+            });
+            investment_by_type_chart.data.datasets.push(
+                {id: this.id, label: this.name.value, data: this.data.values, borderWidth: 2, stack: ''}
+            );
+            this.enabled.subscribe((value) => {
+                const idx = investment_by_type_chart.data.datasets.findIndex((dataset) => dataset.id === this.id);
+                if (idx != -1) {
+                    investment_by_type_chart.setDatasetVisibility(idx, value);
+                    investment_by_type_chart.update();
+                }
+            });
+
+            this.__table_body = document.getElementById(`Config-${this.id}-Table`).getElementsByTagName("tbody")[0];
+            this.update_ages();
+            ContributionStrategy.add_contribution(this);
+            WithdrawalStrategy.add_withdrawal(this);
+        }
+
+        update_ages() {
+            if (this.__table_body != null) {
+                this.__table_body.innerHTML = '';
+
+                for (const age of global_info.data.ages) {
+                    var row = document.createElement("tr");
+                    var age_column = document.createElement("td");
+                    var value_column = document.createElement("td");
+                    var contribution_column = document.createElement("td");
+
+                    age_column.innerText = `${age}`;
+                    contribution_column.innerText = USDollar.format(0);
+                    value_column.innerText = USDollar.format(0);
+                    row.append(age_column, contribution_column, value_column);
+                    this.__table_body.appendChild(row);
+                }
+            }
+
+            this.data.values.length = global_info.data.ages.length;
+            this.data.contributions.length = global_info.data.ages.length;
+            this.data.total_contributions.length = global_info.data.ages.length;
+            this.data.withdrawals.length = global_info.data.ages.length;
+            this.data.conversions.length = global_info.data.ages.length;
+        }
+
+        update_contributions() {
+            const now = new Date();
+
+            let contribution = this.contribution.value;
+            for (const [idx, age] of enumerate(global_info.data.ages)) {
+                if (age >= global_info.retirement_age.value) {
+                    contribution = 0;
+                }
+                if (idx === 0) {
+                    this.data.contributions[idx] = contribution * (12 - now.getMonth());;
+                    this.data.total_contributions[idx] = this.data.contributions[idx];
+                }
+                else {
+                    this.data.contributions[idx] = contribution * 12;
+                    this.data.total_contributions[idx] = this.data.contributions[idx] + this.data.total_contributions[idx - 1];
+                }
+            }
+
+            if (this.__table_body != null) {
+                for (const [idx, row] of enumerate(this.__table_body.children)) {
+                    row.children[1].innerText = USDollar.format(this.data.total_contributions[idx]);
+                }
+            }
+        }
+
+        update_values() {
+            const now = new Date();
+
+            let rate = this.rate.value;
+            for (const [idx, age] of enumerate(global_info.data.ages)) {
+                if (age >= global_info.retirement_age.value) {
+                    rate = this.retirement_rate.value;
+                }
+
+                const withdraw = WithdrawalStrategy.calculate_withdrawal(this, idx);
+                this.data.withdrawals[idx] = withdraw;
+
+                const conversion = WithdrawalStrategy.calculate_conversion(this, idx);
+                this.data.conversions[idx] = conversion;
+
+                if (idx === 0)  {
+                    this.data.values[idx] = monthlyCompoundInterest(this.balance.value, rate / 100, this.data.contributions[idx] / 12 - withdraw - conversion, 12 - now.getMonth());
+                }
+                else {
+                    this.data.values[idx] = monthlyCompoundInterest(this.data.values[idx - 1], rate / 100, this.data.contributions[idx] / 12 - withdraw - conversion);
+                }
+            }
+
+            if (this.__table_body != null) {
+                for (const [idx, row] of enumerate(this.__table_body.children)) {
+                    row.children[2].innerText = USDollar.format(this.data.values[idx]);
+                }
+                this.chart.update();
+                investment_by_type_chart.update();
+                update_dashboard_table();
+                WithdrawalStrategy.after_update_values(this);
+            }
+        }
+    }
+
+    class PreTaxInvestmentAccount extends InvestmentAccount {
+        static RMD_table = {
+            74: 25.5, 75: 24.6, 76: 23.7, 77: 22.9, 78: 22.0,
+            79: 21.1, 80: 20.2, 81: 19.4, 82: 18.5, 83: 17.7,
+            84: 16.8, 85: 16.0, 86: 15.2, 87: 14.4, 88: 13.7,
+            89: 12.9, 90: 12.2, 91: 11.5, 92: 10.8, 93: 10.1,
+            94: 9.5, 95: 8.9, 96: 8.4, 97: 7.8, 98: 7.3,
+            99: 6.8, 100: 6.4, 101: 6.0, 102: 5.6, 103: 5.2,
+            104: 4.9, 105: 4.6, 106: 4.3, 107: 4.1, 108: 3.9,
+            109: 3.7, 110: 3.5, 111: 3.4, 112: 3.3, 113: 3.1,
+            114: 3.0, 115: 2.9, 116: 2.8, 117: 2.7, 118: 2.5,
+            119: 2.3, 120: 2.0
+        }
+
+        constructor(name) {
+            super(name)
+            this.roth_converting = new boolean_property(false);
+            this.roth_account = null;
+            this.roth_name_subs = [];
+
+            this.roth_converting.subscribe((value) => {
+                const input = document.getElementById(`Roth Accounts-${this.id}`);
+                if (input != null) {
+                    input.hidden = !value;
+                }
+
+                const previous_roth = this.roth_account;
+                if (!value) {
+                    this.roth_account = null;
+                }
+
+                this.update_values();
+                if (previous_roth != null) {
+                    previous_roth.update_contributions();
+                    previous_roth.update_values();
+                }
+            });
+        }
+
+        serialize() {
+            const obj = super.serialize();
+
+            obj.roth_converting = this.roth_converting.value;
+            if (this.roth_account === null) {
+                obj.roth_account = null;
+            }
+            else {
+                obj.roth_account = this.roth_account.id;
+            }
+
+            return obj;
+        }
+
+        deserialize(obj) {
+            super.deserialize(obj);
+            this.roth_converting.set_value(obj.roth_converting);
+            this.roth_account = obj.translate_account(obj.roth_account);
+        }
+
+        get_withdrawal_template() {
+            const template = super.get_withdrawal_template();
+            const card_body = template.getElementsByClassName("card-body")[0];
+
+            const roth = document.createElement("div");
+            roth.appendChild(this.generate_input_template(
+                "Enable Roth Conversions",
+                {},
+                this.roth_converting
+            ));
+            const note_text = document.createElement("small");
+            note_text.innerText = "Will try to do Roth conversions in years with extra deduction room";
+            roth.appendChild(note_text);
+
+            const roth_select_container = parseHTML(`
+            <div class="d-flex mb-2">
+                <div class="flex-row">
+                    <select class="form-select mt-2" id="Roth Accounts-${this.id}">
+                        <option value="-1"></option>
+                    </select>
+                </div>
+            </div>
+            `);
+
+            const roth_input = roth_select_container.getElementsByTagName("select")[0];
+            roth_input.hidden = !this.roth_converting.value;
+            roth_input.addEventListener("change", (event) => {
+                const account_id = parseInt(event.target.value);
+                if (account_id === "-1") {
+                    const roth = this.roth_account;
+                    this.roth_account = null;
+                    if (roth != null) {
+                        this.update_values();
+                        this.roth_account.update_values();
+                        this.roth_account.update_contributions();
+                    }
+                }
+                else {
+                    const account = accounts.find((acc) => acc.id === account_id);
+                    if (account === undefined) {
+                        event.target.value = "-1";
+                        this.roth_account = null;
+                        this.update_values();
+                    }
+                    else {
+                        let previous_roth = null;
+                        if (this.roth_account != null) {
+                            previous_roth = this.roth_account;
+                        }
+                        this.roth_account = account;
+                        this.update_values();
+                        this.roth_account.update_contributions();
+                        this.roth_account.update_values();
+                        if (previous_roth != null) {
+                            previous_roth.update_contributions();
+                            previous_roth.update_values();
+                        }
+                    }
+                }
+            });
+
+            roth.appendChild(roth_select_container);
+            card_body.appendChild(roth);
+
+            return template;
+        }
+
+        update_roth_accounts() {
+            const before_subs = [...this.roth_name_subs];
+            this.roth_name_subs.length = 0;
+            const input = document.getElementById(`Roth Accounts-${this.id}`);
+            input.innerHTML = '';
+            let selected = false;
+
+            const blank_option = document.createElement("option");
+            blank_option.value = "-1";
+            input.appendChild(blank_option);
+
+            for (const account of accounts) {
+                if ((account instanceof RothIRA) || (account instanceof Roth401K)) {
+                    for (const sub_id of before_subs) {
+                        account.name.unsubscribe(sub_id);
+                    }
+                    const option = document.createElement("option");
+                    if (this.roth_account != null) {
+                        if (this.roth_account.id === account.id) {
+                            option.selected = true;
+                            selected = true;
+                        }
+                    }
+                    option.value = `${account.id}`;
+                    option.innerText = account.name.value;
+                    this.roth_name_subs.push(
+                        account.name.subscribe((value) => {
+                            option.innerText = value;
+                        })
+                    );
+                    input.appendChild(option);
+                }
+            }
+
+            if (!selected) {
+                const previous_roth = this.roth_account;
+                this.roth_account = null;
+                if (previous_roth != null) {
+                    this.update_values();
+                }
+            }
+        }
+
+        add() {
+            super.add();
+            this.update_roth_accounts();
+        }
+
+        get_contribution_template() {
+            const template = super.get_contribution_template();
+            const card_body = template.getElementsByClassName("card-body")[0];
+
+            card_body.appendChild(this.generate_input_template(
+                "Monthly Contribution",
+                {step: "any", min: 0},
+                this.contribution
+            ));
+
+            return template;
+        }
+
+        calculate_conversion(deduction, idx) {
+            if (this.roth_converting.value && this.roth_account != null) {
+                if (idx === 0) {
+                    return Math.min(deduction, this.balance.value / 12 - WithdrawalStrategy.calculate_withdrawal(this, idx));
+                }
+
+                return Math.min(deduction, this.data.values[idx - 1] / 12 - WithdrawalStrategy.calculate_withdrawal(this, idx));
+            }
+
+            return 0;
+        }
+
+        calculate_withdrawal(expense, idx) {
+            const age = global_info.data.ages[idx];
+            if (age < 59) {
+                return 0;
+            }
+
+            let amount = super.calculate_withdrawal(expense, idx);
+            const rmd = PreTaxInvestmentAccount.RMD_table[Math.min(120, age)];
+            if (rmd != undefined) {
+                if (idx === 0) {
+                    return Math.max(amount, (this.balance.value / rmd) / 12);
+                }
+                return Math.max(amount, (this.data.values[idx - 1] / rmd) / 12);
+            }
+            
+            return amount;
+        }
+    }
+
+    class AfterTaxInvestmentAccount extends InvestmentAccount {
+        constructor(name) {
+            super(name)
+            this.isFixed = new boolean_property(true);
+            this.maxContribution = new money_property(0, 2);
+            this.available = new money_property(0, 2);
+
+            this.isFixed.subscribe((value) => {
+                if (this.__table_body != null) {
+                    const contributionInput = document.getElementById(`Monthly Contribution-${this.id}`).parentElement.parentElement;
+                    const maxContributionInput = document.getElementById(`Max Monthly Contribution-${this.id}`).parentElement.parentElement.parentElement;
+                    if (contributionInput != null && maxContributionInput != null) {
+                        if (value) {
+                            contributionInput.hidden = false;
+                            maxContributionInput.hidden = true;
+                            const radio = document.getElementById(`Contribution-Option-Fixed-${this.id}`);
+                            if (!radio.checked) {
+                                radio.checked = true;
+                            }
+                        }
+                        else {
+                            contributionInput.hidden = true;
+                            maxContributionInput.hidden = false;
+                            const radio = document.getElementById(`Contribution-Option-Income-${this.id}`);
+                            if (!radio.checked) {
+                                radio.checked = true;
+                            }
+                        }
+                    }
+                }
+                
+                if (!value) {
+                    if (this.maxContribution.value == 0) {
+                        this.contribution.set_value(this.available.value);
+                    }
+                    else {
+                        this.contribution.set_value(Math.min(this.available.value, this.maxContribution.value));
+                    }
+                }
+            });
+
+            this.maxContribution.subscribe((value) => {
+                if (!this.isFixed.value) {
+                    if (value == 0) {
+                        this.contribution.set_value(this.available.value);
+                    }
+                    else {
+                        this.contribution.set_value(Math.min(this.available.value, value));
+                    }
+                }
+            });
+
+            this.available.subscribe((value) => {
+                const available = document.getElementById(`Contribution-Sheet-Available-${this.id}`);
+                if (available != null) {
+                    available.innerText = USDollar.format(value);
+                }
+                if (this.isFixed.value) {
+                    this.contribution.set_value(Math.min(this.contribution.value, value));
+                }
+                else {
+                    if (this.maxContribution.value == 0) {
+                        this.contribution.set_value(value);
+                    }
+                    else {
+                        this.contribution.set_value(Math.min(value, this.maxContribution.value));
+                    }
+                }
+            });
+
+            this.contribution.subscribe((value) => {
+                if (value > this.available.value) {
+                    this.contribution.set_value(this.available.value);
+                    return;
+                }
+                const actual = document.getElementById(`Contribution-Actual-${this.id}`);
+                if (actual != null) {
+                    actual.innerText = USDollar.format(value);
+                }
+                this.update_contributions();
+                this.update_values();
+                ContributionStrategy.after_update_contributions(this);
+            });
+        }
+
+        serialize() {
+            const obj = super.serialize();
+
+            obj.fixed_contribution = this.isFixed.value;
+            obj.maxContribution = this.maxContribution.value;
+
+            return obj;
+        }
+
+        deserialize(obj) {
+            super.deserialize(obj);
+            if (!obj.fixed_contribution) {
+                this.isFixed.set_value(obj.fixed_contribution);
+                this.maxContribution.set_value(obj.maxContribution);
+            }
+        }
+
+        get_contribution_template() {
+            const template = super.get_contribution_template();
+            const card_body = template.getElementsByClassName("card-body")[0];
+
+            const available = parseHTML(`
+            <div>
+                Monthly Income Available: <span id="Contribution-Sheet-Available-${this.id}">${USDollar.format(this.available.value)}</span>
+            </div>
+            `);
+
+            const form = parseHTML(`
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="Contribution-Options-${this.id}" id="Contribution-Option-Fixed-${this.id}" value="0">
+                    <label class="form-check-label" for="Contribution-Option-Fixed-${this.id}">Fixed Amount</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="Contribution-Options-${this.id}" id="Contribution-Option-Income-${this.id}" value="1">
+                    <label class="form-check-label" for="Contribution-Option-Income-${this.id}">Leftover Income</label>
+                </div>
+            </div>
+            `);
+
+            const choices = form.getElementsByTagName("input");
+
+            choices[0].addEventListener('change', () => {
+                this.isFixed.set_value(true);
+            });
+            
+            choices[1].addEventListener('change', () => {
+                this.isFixed.set_value(false);
+            });
+            if (this.isFixed.value) {
+                choices[0].checked = true;
+            }
+            else {
+                choices[1].checked = true;
+            }
+
+            const contributionInput = this.generate_input_template(
+                "Monthly Contribution",
+                {step: "any", min: 0},
+                this.contribution
+            );
+            contributionInput.hidden = !this.isFixed.value;
+
+            const maxContributionInput = this.generate_input_template(
+                "Max Monthly Contribution",
+                {step: "any", min: 0},
+                this.maxContribution
+            );
+
+            const leftover_parent = document.createElement("div");
+            leftover_parent.hidden = this.isFixed.value;
+            const actual_contribution = parseHTML(`
+            <div>
+                <span class="fw-bold">Monthly Contribution: </span><span id="Contribution-Actual-${this.id}">${USDollar.format(this.contribution.value)}</span>
+            </div>
+            `);
+            leftover_parent.append(maxContributionInput, actual_contribution);
+
+            form.append(contributionInput, leftover_parent);
+
+
+            card_body.append(available, form);
+
+            const outer = parseHTML(`
+            <div class="row">
+                <div class="col-1 d-grid mt-5">
+                    <button class="btn btn-outline-secondary btn-sm h-50"><i class="bi bi-arrow-up"></i></button>
+                    <button class="btn btn-outline-secondary btn-sm h-50"><i class="bi bi-arrow-down"></i></button>
+                </div>
+                <div class="col-11">
+                </div>
+            </div>
+            `);
+
+            outer.children[0].children[0].addEventListener('click', () => {
+                ContributionStrategy.shift_contribution(this, -1);
+            });
+            outer.children[0].children[1].addEventListener('click', () => {
+                ContributionStrategy.shift_contribution(this, 1);
+            });
+            outer.children[1].appendChild(template);
+
+            return outer;
+        }
+    }
+
+    class TaxableBrokerage extends AfterTaxInvestmentAccount {
+        constructor(name) {
+            super(name);
+        }
+
+        config_name() {
+            return "Taxable Brokerage";
+        }
+    }
+
+
+    class Trad401K extends PreTaxInvestmentAccount {
+        constructor(name) {
+            super(name);
+
+            this.contribution.subscribe((value) => {
+                tax_sheet.update_401K_contributions();
+            });
+
+            this.enabled.subscribe((value) => {
+                tax_sheet.update_401K_contributions();
+            });
+        }
+
+        config_name() {
+            return "Traditional 401K";
+        }
+    }
+
+    class Roth401K extends AfterTaxInvestmentAccount  {
+        constructor(name) {
+            super(name);
+        }
+
+        calculate_withdrawal(expense, idx) {
+            const age = global_info.data.ages[idx];
+            if (age < 59) {
+                const contributions_up_to_this_point = this.data.contributions.slice(0, idx).reduce((sum, rhs) => sum + rhs, 0);
+                const withdrawals_up_to_this_point   = this.data.withdrawals.slice(0, idx).reduce((sum, rhs) => sum + rhs, 0);
+                const principal_available = contributions_up_to_this_point - withdrawals_up_to_this_point;
+                return Math.min(expense, Math.max(0, principal_available));
+            }
+            
+            return super.calculate_withdrawal(expense, idx);
+        }
+
+        update_contributions() {
+            super.update_contributions();
+
+            for (const [idx, age] of enumerate(global_info.data.ages)) {
+                let extra_contributions = 0;
+                for (const account of accounts) {
+                    if (account instanceof PreTaxInvestmentAccount) {
+                        if (account.roth_converting.value){
+                            if (account.roth_account != null) {
+                                if (account.roth_account.id === this.id) {
+                                    extra_contributions += account.data.conversions[idx];
+                                }
+                            }
+                        }
+                    }
+                }
+                if (extra_contributions != 0) {
+                    this.data.contributions[idx] += extra_contributions;
+                    for (let idx2 = idx; idx2 < this.data.contributions.length; ++idx2) {
+                        this.data.total_contributions[idx2] += extra_contributions;
+                    }
+                }
+            }
+
+            if (this.__table_body != null) {
+                for (const [idx, row] of enumerate(this.__table_body.children)) {
+                    row.children[1].innerText = USDollar.format(this.data.total_contributions[idx]);
+                }
+            }
+        }
+
+        config_name() {
+            return "Roth 401K";
+        }
+
+        add() {
+            super.add();
+            for (const account of accounts) {
+                if (account instanceof PreTaxInvestmentAccount) {
+                    account.update_roth_accounts();
+                }
+            }
+        }
+
+        delete() {
+            super.delete();
+            for (const account of accounts) {
+                if (account instanceof PreTaxInvestmentAccount) {
+                    account.update_roth_accounts();
+                }
+            }
+        }
+    }
+
+    class TradIRA extends PreTaxInvestmentAccount  {
+        constructor(name) {
+            super(name);
+
+            this.contribution.subscribe((value) => {
+                tax_sheet.update_ira_contributions();
+            });
+
+            this.enabled.subscribe((value) => {
+                tax_sheet.update_ira_contributions();
+            });
+        }
+
+        config_name() {
+            return "Traditional IRA";
+        }
+    }
+
+    class RothIRA extends AfterTaxInvestmentAccount  {
+        constructor(name) {
+            super(name);
+        }
+
+        calculate_withdrawal(expense, idx) {
+            const age = global_info.data.ages[idx];
+            if (age < 59) {
+                const contributions_up_to_this_point = this.data.contributions.slice(0, idx).reduce((sum, rhs) => sum + rhs, 0);
+                const withdrawals_up_to_this_point   = this.data.withdrawals.slice(0, idx).reduce((sum, rhs) => sum + rhs, 0);
+                const principal_available = contributions_up_to_this_point - withdrawals_up_to_this_point;
+                return Math.min(expense, Math.max(0, principal_available));
+            }
+            
+            return super.calculate_withdrawal(expense, idx);
+        }
+
+        update_contributions() {
+            super.update_contributions();
+
+            for (const [idx, age] of enumerate(global_info.data.ages)) {
+                let extra_contributions = 0;
+                for (const account of accounts) {
+                    if (account instanceof PreTaxInvestmentAccount) {
+                        if (account.roth_converting.value){
+                            if (account.roth_account != null) {
+                                if (account.roth_account.id === this.id) {
+                                    extra_contributions += account.data.conversions[idx];
+                                }
+                            }
+                        }
+                    }
+                }
+                if (extra_contributions != 0) {
+                    this.data.contributions[idx] += extra_contributions;
+                    for (let idx2 = idx; idx2 < this.data.contributions.length; ++idx2) {
+                        this.data.total_contributions[idx2] += extra_contributions;
+                    }
+                }
+            }
+
+            if (this.__table_body != null) {
+                for (const [idx, row] of enumerate(this.__table_body.children)) {
+                    row.children[1].innerText = USDollar.format(this.data.total_contributions[idx]);
+                }
+            }
+        }
+
+        config_name() {
+            return "Roth IRA";
+        }
+
+        add() {
+            super.add();
+            for (const account of accounts) {
+                if (account instanceof PreTaxInvestmentAccount) {
+                    account.update_roth_accounts();
+                }
+            }
+        }
+
+        delete() {
+            super.delete();
+            for (const account of accounts) {
+                if (account instanceof PreTaxInvestmentAccount) {
+                    account.update_roth_accounts();
+                }
+            }
+        }
+    }
+
+    class HSA extends InvestmentAccount  {
+        constructor(name) {
+            super(name);
+
+            this.contribution.subscribe((value) => {
+                tax_sheet.update_hsa();
+            });
+
+            this.enabled.subscribe((value) => {
+                tax_sheet.update_hsa();
+            });
+        }
+
+        config_name() {
+            return "Health Savings Account";
+        }
+
+        get_contribution_template() {
+            const template = super.get_contribution_template();
+            const card_body = template.getElementsByClassName("card-body")[0];
+
+            card_body.appendChild(this.generate_input_template(
+                "Monthly Contribution",
+                {step: "any", min: 0},
+                this.contribution
+            ));
+
+            return template;
+        }
+    }
+
+    class ContributionStrategy {
+        static Contribution = class {
+            constructor(account, priority) {
+                this.account = account;
+                this.priority = priority;
+                this.node = null;
+            }
+
+            serialize() {
+                return this.account.id;
+            }
+        };
+
+        static contributions = document.getElementById("nav-contributions");
+        static contribution_expenses = document.getElementById("Contribution-Sheet-Expenses");
+        static contribution_leftover = document.getElementById("Contribution-Sheet-Leftover");
+        static priority = {
+            HSA: 1,
+            TradIRA: 2,
+            Trad401K: 3
+        };
+        static contributionOrder = [];
+
+
+        static leftover_income() {
+            return tax_sheet.after_tax() - global_info.expenses.value;
+        }
+
+        static update_expenses() {
+            ContributionStrategy.contribution_expenses.innerText = USDollar.format(global_info.expenses.value);
+            ContributionStrategy.update_leftover();
+        }
+
+        static update_leftover() {
+            ContributionStrategy.contribution_leftover.innerText = USDollar.format(ContributionStrategy.leftover_income());
+            ContributionStrategy.__update_contributions(0);
+        }
+
+        static __update_contributions(idx, leftover = null) {
+            if (idx >= ContributionStrategy.contributionOrder.length) {
+                return;
+            }
+
+            const obj = ContributionStrategy.contributionOrder[idx];
+            if (obj.account instanceof AfterTaxInvestmentAccount) {
+                if (leftover === null) {
+                    leftover = ContributionStrategy.leftover_income() / 12;
+                    for (let idx2 = 0; idx2 < idx; ++idx2) {
+                        const obj2 = ContributionStrategy.contributionOrder[idx2];
+                        if (obj2.account instanceof AfterTaxInvestmentAccount) {
+                            leftover -= obj2.account.contribution.value;
+                        }
+                    }
+                    leftover = Math.max(0, leftover);
+                }
+                obj.account.available.set_value(leftover);
+                if (obj.account.enabled.value) {
+                    leftover -= obj.account.contribution.value;
+                    leftover = Math.max(0, leftover);
+                }
+            }
+
+            ContributionStrategy.__update_contributions(idx + 1, leftover);
+        }
+
+        static after_update_contributions(account) {
+            const idx = ContributionStrategy.contributionOrder.findIndex((obj) => obj.account.id === account.id);
+            if (idx != -1) {
+                ContributionStrategy.__update_contributions(idx + 1);
+            }
+        }
+
+        static update_contributions(account) {
+            const idx = ContributionStrategy.contributionOrder.findIndex((obj) => obj.account.id === account.id);
+            if (idx != -1) {
+                ContributionStrategy.__update_contributions(idx);
+            }
+        }
+
+        static shift_contribution(account, dir) {
+            const idx = ContributionStrategy.contributionOrder.findIndex((obj) => obj.account.id === account.id);
+            if (idx != -1) {
+                var move = idx + dir;
+                if (move >= 0 && move < ContributionStrategy.contributionOrder.length) {
+                    var floor = ContributionStrategy.contributionOrder.findIndex((obj) => obj.priority == null);
+                    if (floor != -1) {
+                        floor -= 1;
+                    }
+                    if (move > floor) {
+                        const obj = ContributionStrategy.contributionOrder[idx];
+                        ContributionStrategy.contributionOrder.splice(idx, 1);
+                        ContributionStrategy.contributionOrder.splice(move, 0, obj);
+                        if (move === (ContributionStrategy.contributionOrder.length - 1)) {
+                            obj.node = ContributionStrategy.contributions.appendChild(obj.node);
+                        }
+                        else {
+                            obj.node = ContributionStrategy.contributions.insertBefore(obj.node, ContributionStrategy.contributionOrder[move + 1].node);
+                        }
+
+                        if (dir > 0) {
+                            ContributionStrategy.__update_contributions(idx);
+                        }
+                        else {
+                            ContributionStrategy.__update_contributions(move);
+                        }
+                    }
+                }
+            }
+        }
+
+        static add_contribution(account) {
+            const node = account.get_contribution_template();
+            const myPriority = ContributionStrategy.priority[account.constructor.name] || null;
+
+            var foundChild = null;
+            var idx = ContributionStrategy.contributionOrder.length;
+            if (myPriority != null) {
+                for (idx = 0; idx < ContributionStrategy.contributionOrder.length; ++idx) {
+                    const obj = ContributionStrategy.contributionOrder[idx];
+                    if (obj.priority === null) {
+                        break;
+                    }
+
+                    if (obj.priority > myPriority) {
+                        break;
+                    }
+                }
+            }
+
+            const myObj = new ContributionStrategy.Contribution(account, myPriority);
+            var otherNode = null;
+            if (idx != ContributionStrategy.contributionOrder.length) {
+                otherNode = ContributionStrategy.contributionOrder[idx].node;
+            }
+            myObj.node = ContributionStrategy.contributions.insertBefore(node, otherNode);
+            ContributionStrategy.contributionOrder.splice(idx, 0, myObj);
+
+            ContributionStrategy.__update_contributions(idx);
+        }
+
+        static remove_contribution(account) {
+            const idx = ContributionStrategy.contributionOrder.findIndex((obj) => obj.account.id === account.id);
+            if (idx != -1) {
+                const obj = ContributionStrategy.contributionOrder[idx];
+                obj.node.remove();
+                ContributionStrategy.contributionOrder.splice(idx, 1);
+                account.contribution.set_value(0);
+                ContributionStrategy.__update_contributions(idx);
+            }
+        }
+    }
+
+    class WithdrawalStrategy {
+        static Withdrawal = class {
+            constructor(account, priority) {
+                this.account = account;
+                this.priority = priority;
+                this.node = null;
+                this.name_sub = null;
+                this.header = null;
+            }
+
+            serialize() {
+                return this.account.id;
+            }
+        }
+
+        static withdrawals = document.getElementById("Withdrawals");
+        static withdrawal_canvas = document.getElementById("WithdrawalByType"); 
+        static withdrawal_chart = null;
+        static withdrawal_table = document.getElementById("Withdrawal-Table");
+        static withdrawal_table_body = WithdrawalStrategy.withdrawal_table.getElementsByTagName("tbody")[0];
+        static withdrawal_table_head = WithdrawalStrategy.withdrawal_table.getElementsByTagName("thead")[0];
+        static withdrawal_table_header_row = WithdrawalStrategy.withdrawal_table_head.getElementsByTagName("tr")[0];
+        static withdrawalOrder = [];
+        static priority = {
+            SocialSecurity: 1,
+            Annuity: 2
+        };
+
+        static {
+            WithdrawalStrategy.update_ages();
+        }
+
+        static update_ages() {
+            const current_age = global_info.age.value;
+            const retirement_age = global_info.retirement_age.value;
+            const years_between = Math.max(0, retirement_age - current_age);
+
+            WithdrawalStrategy.withdrawal_table_body.innerHTML = '';
+
+            for (let idx = years_between; idx <= (global_info.life_expectancy.value - current_age); ++idx) {
+                const age = global_info.data.ages[idx];
+
+                const row = document.createElement("tr");
+                const age_column = document.createElement("td");
+                const expenses_column = document.createElement("td");
+                const amount_owed_column = document.createElement("td");
+                const taxes_column = document.createElement("td");
+                const cumulative_taxes_column = document.createElement("td");
+
+                age_column.innerText = age;
+                expenses_column.innerText = USDollar.format(0);
+                amount_owed_column.innerText = USDollar.format(0);
+                taxes_column.innerText = USDollar.format(0);
+                cumulative_taxes_column.innerText = USDollar.format(0);
+
+                row.append(age_column, expenses_column);
+
+                for (const obj of WithdrawalStrategy.withdrawalOrder) {
+                    const data_column = document.createElement("td");
+                    data_column.innerText = USDollar.format(0);
+                    row.appendChild(data_column);
+                }
+
+                row.append(amount_owed_column, taxes_column, cumulative_taxes_column);
+                WithdrawalStrategy.withdrawal_table_body.appendChild(row);
+            }
+
+            if (WithdrawalStrategy.withdrawal_chart === null) {
+                WithdrawalStrategy.withdrawal_chart = new Chart(WithdrawalStrategy.withdrawal_canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: global_info.data.ages,
+                        datasets: []
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                min: global_info.retirement_age.value
+                            },
+                            y: {
+                                ticks: {
+                                    callback: function(val, index) {
+                                        return USDollar.format(val);
+                                    }
+                                }
+                            }
+                        },
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ": " + USDollar.format(parseFloat(context.parsed.y));
+                                    }
+                                }
+                            },
+                            colors: {
+                                forceOverride: true
+                            }
+                        }
+                    }
+                });
+            }
+            else {
+                WithdrawalStrategy.withdrawal_chart.options.scales.x.min = global_info.retirement_age.value;
+                WithdrawalStrategy.withdrawal_chart.update();
+            }
+
+            WithdrawalStrategy.update_expenses();
+        }
+
+        static update_expenses() {
+            const current_age = global_info.age.value;
+            const retirement_age = global_info.retirement_age.value;
+            var years_between = Math.max(0, retirement_age - current_age);
+
+            for (const row of WithdrawalStrategy.withdrawal_table_body.children) {
+                const expenses = global_info.data.expenses[years_between] / 12;
+                row.children[1].innerText = USDollar.format(expenses);
+                ++years_between;
+            }
+
+            if (WithdrawalStrategy.withdrawalOrder.length > 0) {
+                WithdrawalStrategy.withdrawalOrder[0].account.update_values();
+            }
+        }
+
+        static calculate_withdrawal(account, idx) {
+            if (!account.enabled.value) {
+                return 0;
+            }
+
+            const age = global_info.data.ages[idx];
+            if (age < global_info.retirement_age.value) {
+                return 0;
+            }
+            
+            let expense = global_info.data.expenses[idx] / 12;
+            for (const obj of WithdrawalStrategy.withdrawalOrder) {
+                if (obj.account.id === account.id) {
+                    return Math.max(0, obj.account.calculate_withdrawal(expense, idx));
+                }
+                expense -= obj.account.data.withdrawals[idx];
+                expense = Math.max(expense, 0);
+            }
+
+            return 0;
+        }
+
+        static calculate_conversion(account, idx) {
+            if (!account.enabled.value) {
+                return 0;
+            }
+
+            const age = global_info.data.ages[idx];
+            if (age < global_info.retirement_age.value) {
+                return 0;
+            }
+
+            let pre_tax_withdraws = 0;
+            let ss_withdraws = 0;
+            let expenses = global_info.data.expenses[idx] / 12;
+            for (const obj of WithdrawalStrategy.withdrawalOrder) {
+                const withdrawal = obj.account.calculate_withdrawal(expenses, idx);
+                if (obj.account instanceof PreTaxInvestmentAccount) {
+                    pre_tax_withdraws += withdrawal;
+                }
+                else
+                if (obj.account instanceof SocialSecurity) {
+                    ss_withdraws += withdrawal;
+                }
+                else if (obj.account instanceof Annuity) {
+                    pre_tax_withdraws += withdrawal;
+                }
+                expenses -= withdrawal;
+                expenses = Math.max(0, expenses);
+            }
+            const deduction = (tax_sheet.fed_deduction.value * Math.pow(1 + global_info.inflation.value / 100, idx)) / 12;
+            pre_tax_withdraws -= deduction - ss_withdraws * 0.85;
+            if (pre_tax_withdraws < 0) {
+                let conversion_available = -pre_tax_withdraws;
+                for (const obj of WithdrawalStrategy.withdrawalOrder) {
+                    if (obj.account instanceof InvestmentAccount) {
+                        if (obj.account.id === account.id) {
+                            return obj.account.calculate_conversion(conversion_available, idx);
+                        }
+                        
+                        conversion_available -= obj.account.data.conversions[idx];
+                        if (conversion_available <= 0) {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return 0;
+        }
+
+        static shift_withdrawal(account, dir) {
+            if (dir != 0) {
+                const idx = WithdrawalStrategy.withdrawalOrder.findIndex((obj) => obj.account.id === account.id);
+                if (idx != -1) {
+                    var move = idx + dir;
+                    if (move >= 0 && move < WithdrawalStrategy.withdrawalOrder.length) {
+                        var floor = WithdrawalStrategy.withdrawalOrder.findIndex((obj) => obj.priority == null);
+                        if (floor != -1) {
+                            floor -= 1;
+                        }
+                        if (move > floor) {
+                            const obj = WithdrawalStrategy.withdrawalOrder[idx];
+                            WithdrawalStrategy.withdrawalOrder.splice(idx, 1);
+                            WithdrawalStrategy.withdrawalOrder.splice(move, 0, obj);
+                            if (move === (WithdrawalStrategy.withdrawalOrder.length - 1)) {
+                                obj.node = WithdrawalStrategy.withdrawals.appendChild(obj.node);
+                                obj.header = WithdrawalStrategy.withdrawal_table_header_row.appendChild(obj.header);
+                            }
+                            else {
+                                obj.node = WithdrawalStrategy.withdrawals.insertBefore(obj.node, WithdrawalStrategy.withdrawalOrder[move + 1].node);
+                                obj.header = WithdrawalStrategy.withdrawal_table_header_row.insertBefore(obj.header, WithdrawalStrategy.withdrawalOrder[move + 1].header);
+                            }
+
+                            if (dir > 0) {
+                                WithdrawalStrategy.withdrawalOrder[idx].account.update_values();
+                            }
+                            else {
+                                account.update_values();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        static add_withdrawal(account) {
+            const node = account.get_withdrawal_template();
+            const myPriority = WithdrawalStrategy.priority[account.constructor.name] || null;
+
+            var foundChild = null;
+            var idx = WithdrawalStrategy.withdrawalOrder.length;
+            if (myPriority != null) {
+                for (idx = 0; idx < WithdrawalStrategy.withdrawalOrder.length; ++idx) {
+                    const obj = WithdrawalStrategy.withdrawalOrder[idx];
+                    if (obj.priority === null) {
+                        break;
+                    }
+
+                    if (obj.priority > myPriority) {
+                        break;
+                    }
+                }
+            }
+
+            const myObj = new WithdrawalStrategy.Withdrawal(account, myPriority);
+            var otherNode = null;
+            if (idx != WithdrawalStrategy.withdrawalOrder.length) {
+                otherNode = WithdrawalStrategy.withdrawalOrder[idx].node;
+            }
+            myObj.node = WithdrawalStrategy.withdrawals.insertBefore(node, otherNode);
+            WithdrawalStrategy.withdrawalOrder.splice(idx, 0, myObj);
+
+            const header = document.createElement("th");
+            header.innerText = account.name.value;
+            myObj.name_sub = account.name.subscribe((value) => {
+                header.innerText = value;
+                for (const dataset of WithdrawalStrategy.withdrawal_chart.data.datasets) {
+                    if (dataset.id === account.id) {
+                        dataset.label = value;
+                        WithdrawalStrategy.withdrawal_chart.update();
+                        break;
+                    }
+                }
+            });
+            myObj.header = header;
+
+            WithdrawalStrategy.withdrawal_table_header_row.insertBefore(header, WithdrawalStrategy.withdrawal_table_header_row.children[idx + 2]);
+            for (const row of WithdrawalStrategy.withdrawal_table_body.getElementsByTagName("tr")) {
+                const columns = row.getElementsByTagName("td");
+                const data = document.createElement("td");
+                data.innerText = USDollar.format(0);
+                row.insertBefore(data, columns[idx + 2]);
+            }
+            account.update_values();
+            WithdrawalStrategy.withdrawal_chart.data.datasets.push(
+                {id: account.id, label: account.name.value, data: account.data.withdrawals, borderWidth: 2, stack: ''}
+            );
+            WithdrawalStrategy.withdrawal_chart.update();
+        }
+
+        static remove_withdrawal(account) {
+            const idx = WithdrawalStrategy.withdrawalOrder.findIndex((obj) => obj.account.id === account.id);
+            if (idx != -1) {
+                const obj = WithdrawalStrategy.withdrawalOrder[idx];
+                obj.node.remove();
+                account.name.unsubscribe(obj.name_sub);
+                WithdrawalStrategy.withdrawal_table_header_row.removeChild(WithdrawalStrategy.withdrawal_table_header_row.children[idx + 2]);
+                for (const row of WithdrawalStrategy.withdrawal_table_body.getElementsByTagName("tr")) {
+                    row.getElementsByTagName("td")[idx + 2].remove();
+                }
+                WithdrawalStrategy.withdrawalOrder.splice(idx, 1);
+                if (idx < WithdrawalStrategy.withdrawalOrder.length) {
+                    WithdrawalStrategy.withdrawalOrder[idx].account.update_values();
+                }
+
+                const chart_idx = WithdrawalStrategy.withdrawal_chart.data.datasets.findIndex((dataset) => dataset.id === obj.account.id);
+                if (chart_idx != -1) {
+                    WithdrawalStrategy.withdrawal_chart.data.datasets.splice(chart_idx, 1);
+                    WithdrawalStrategy.withdrawal_chart.update();
+                }
+            }
+        }
+
+        static __update_withdrawal_ui(account) {
+            const idx = WithdrawalStrategy.withdrawalOrder.findIndex((obj) => obj.account.id === account.id);
+            if (idx != -1) {
+                const current_age = global_info.age.value;
+                const retirement_age = global_info.retirement_age.value;
+                let years_between = Math.max(0, retirement_age - current_age);
+                for (const row of WithdrawalStrategy.withdrawal_table_body.children) {
+                    const withdrawal = account.data.withdrawals[years_between];
+                    if (account instanceof InvestmentAccount) {
+                        if (account.data.conversions[years_between] > 0.01) {
+                            row.children[idx + 2].innerHTML = `${USDollar.format(withdrawal)} (<span class="text-success">${USDollar.format(account.data.conversions[years_between])}</span>)`
+                        }
+                        else {
+                            row.children[idx + 2].innerText = USDollar.format(withdrawal);
+                        }
+                    }
+                    else {
+                        row.children[idx + 2].innerText = USDollar.format(withdrawal);
+                    }
+
+                    ++years_between;
+                }
+            }
+        }
+
+        static after_update_values(account) {
+            var start = false;
+            for (const obj of WithdrawalStrategy.withdrawalOrder) {
+                if (start) {
+                    obj.account.update_values();
+                    return;
+                }
+
+                if (obj.account.id === account.id) {
+                    WithdrawalStrategy.__update_withdrawal_ui(account);
+                    start = true;
+                }
+            }
+
+            if (start) {
+                const current_age = global_info.age.value;
+                const retirement_age = global_info.retirement_age.value;
+                let year = Math.max(current_age, retirement_age) - current_age;
+                let years_between = Math.max(0, retirement_age - current_age);
+                let cumulative_taxes = 0;
+                for (const row of WithdrawalStrategy.withdrawal_table_body.children) {
+                    var pre_tax_withdraws = 0;
+                    let ss_withdraws = 0;
+                    var expenses = global_info.data.expenses[years_between] / 12;
+                    for (const [idx, obj] of enumerate(WithdrawalStrategy.withdrawalOrder)) {
+                        const withdrawal = obj.account.data.withdrawals[years_between];
+                        if (obj.account instanceof PreTaxInvestmentAccount) {
+                            pre_tax_withdraws += withdrawal;
+                        }
+                        else
+                        if (obj.account instanceof SocialSecurity) {
+                            ss_withdraws += withdrawal;
+                        }
+                        else if (obj.account instanceof Annuity) {
+                            pre_tax_withdraws += withdrawal;
+                        }
+                        expenses -= withdrawal;
+                        expenses = Math.max(0, expenses);
+                    }
+                    row.children[row.children.length - 3].innerText = USDollar.format(Math.max(0, expenses));
+                    pre_tax_withdraws += ss_withdraws * 0.85;
+                    pre_tax_withdraws *= 12;
+                    pre_tax_withdraws = Math.max(0, pre_tax_withdraws - tax_sheet.fed_deduction.value * Math.pow(1 + global_info.inflation.value / 100, year));
+
+                    let taxes_paid = taxes.filter((tax) => tax.enabled.value && (tax.income_sources.value.includes(adjusted_gross_income_source) || tax.income_sources.value.includes(taxable_income_source)))
+                                        .map((tax) => tax.do_calculate_tax(pre_tax_withdraws, year))
+                                        .reduce((sum, rhs) => sum + rhs, 0);
+                    row.children[row.children.length - 2].innerText = USDollar_Rounded.format(taxes_paid);
+                    cumulative_taxes += taxes_paid;
+                    row.children[row.children.length - 1].innerText = USDollar_Rounded.format(cumulative_taxes);
+                    
+                    ++years_between;
+                    ++year;
+                }
+
+                WithdrawalStrategy.withdrawal_chart.update();
+            }
+        }
+    }
+
+    class IncomeSource extends Configuration {
+        constructor(name) {
+            super(name)
+        }
+
+        toString() {
+            return this.name.value;
+        }
+    }
+
+    const fica_taxable_income_source = new IncomeSource("FICA Taxable");
+    const adjusted_gross_income_source = new IncomeSource("Adjusted Gross Income");
+    const taxable_income_source = new IncomeSource("Taxable");
+    const after_tax_income_source = new IncomeSource("After Tax Income")
+    const taxable_income_sources = [fica_taxable_income_source, adjusted_gross_income_source, taxable_income_source];
+    const all_income_sources = [fica_taxable_income_source, adjusted_gross_income_source, taxable_income_source, after_tax_income_source];
+
+    function lookup_income_source(income_source) {
+        switch (income_source.id) {
+            case fica_taxable_income_source.id:
+                return tax_sheet.fica_taxable();
+            case adjusted_gross_income_source.id:
+                return tax_sheet.adjusted_gross_income();
+            case taxable_income_source.id:
+                return tax_sheet.fed_taxable();
+            case after_tax_income_source.id:
+                return tax_sheet.after_tax();
+        }
+
+        return null;
+    }
+
+    class Tax extends EditableConfig {
+        static IncomeSourceProperty = class extends array_property {
+            constructor(value = []) {
+                super(value,
+                    (item) => item.toString(),
+                    (str)  => taxable_income_sources.find((income) => income.name.value == str)
+                );
+            }
+        }
+
+        constructor(name, ...income_sources) {
+            super(name);
+            this.income_sources = new Tax.IncomeSourceProperty(income_sources);
+
+            this.income_sources.subscribe((value) => {
+                this.__update_taxes();
+            });
+
+            this.enabled.subscribe((value) => {
+                this.__update_taxes();
+            });
+        }
+
+        serialize() {
+            const obj = super.serialize();
+
+            obj.income_sources = this.income_sources.value.map((source) => source.serialize());
+
+            return obj;
+        }
+
+        deserialize(obj) {
+            super.deserialize(obj);
+            this.income_sources.set_value(obj.income_sources.map((source_data) => all_income_sources.find((source) => source.name.value === source_data.name)));
+        }
+
+        __update_taxes() {
+            tax_sheet.update_fica_tax();
+            tax_sheet.update_tax();
+        }
+
+        get_template()
+        {
+            const template = super.get_template();
+            const body = template.getElementsByClassName("card-body")[0];
+            body.appendChild(this.generate_select_template(
+                "Sources",
+                {multiple: ""},
+                this.income_sources,
+                ...taxable_income_sources
+            ));
+
+            return template;
+        }
+
+        add() {
+            super.add();
+            const node = this.get_template();
+            taxes_node.insertBefore(node, add_tax_node);
+            taxes.push(this);
+
+            tax_sheet.update_fica_tax();
+            tax_sheet.update_tax();
+        }
+
+        delete() {
+            let node = document.getElementById(`Tax-${this.id}`);
+            if (node != null) {
+                node.remove();
+            }
+
+            const idx = taxes.findIndex((tax) => tax.id === this.id);
+            if (idx != -1) {
+                taxes.splice(idx, 1);
+            }
+
+            tax_sheet.update_fica_tax();
+            tax_sheet.update_tax();
+
+            super.delete();
+        }
+
+        calculate_tax() {
+            if (!this.enabled.value) {
+                return 0;
+            }
+            const amount = this.income_sources.value.map((source) => lookup_income_source(source))
+                                                    .reduce((sum, rhs) => sum + rhs, 0);
+            return this.do_calculate_tax(amount);
+        }
+
+        do_calculate_tax(amount, year = 0) {
+            return null;
+        }
+    }
+
+    class FlatTax extends Tax {
+        constructor(name, ...income_sources) {
+            super(name, ...income_sources);
+            this.rate = new float_property(0);
+        }
+
+        serialize() {
+            const obj = super.serialize();
+
+            obj.rate = this.rate.value;
+
+            return obj;
+        }
+
+        deserialize(obj) {
+            super.deserialize(obj);
+
+            this.rate.set_value(obj.rate);
+        }
+
+        config_name() {
+            return "Flat Tax";
+        }
+
+        get_template() {
+            const template = super.get_template();
+            const body = template.getElementsByClassName("card-body")[0];
+            body.appendChild(this.generate_input_template(
+                "Rate",
+                {step: "any", min: 0},
+                this.rate
+            ));
+
+            return template;
+        }
+
+        do_calculate_tax(amount, year = 0) {
+            return amount * (this.rate.value / 100);
+        }
+    }
+
+    class TaxBracket {
+        constructor(rate, min, max) {
+            this.rate = new float_property(rate);
+            this.min  = new int_property(min);
+            this.max  = new int_property(max);
+        }
+
+        serialize() {
+            return {
+                rate: this.rate.value,
+                min: this.min.value,
+                max: this.max.value
+            }
+        }
+
+        deserialize(obj) {
+            this.rate.set_value(obj.rate);
+            this.min.set_value(obj.min);
+            this.max.set_value(obj.max);
+        }
+    }
+
+    class TaxTable extends Tax {
+        constructor(name, ...income_sources) {
+            super(name, ...income_sources)
+            this.brackets = []
+        }
+
+        serialize() {
+            const obj = super.serialize();
+
+            obj.brackets = this.brackets.map((bracket) => bracket.serialize());
+
+            return obj;
+        }
+
+        deserialize(obj) {
+            super.deserialize(obj);
+
+            for (const bracket of obj.brackets.map((data) => {const b = new TaxBracket(0, 0, 0); b.deserialize(data); return b;}))  {
+                this.add_bracket(bracket.rate.value, bracket.min.value, bracket.max.value);
+            }
+        }
+
+        config_name() {
+            return "Tax Table";
+        }
+
+        get_template() {
+            const template = super.get_template();
+            const body = template.getElementsByClassName("card-body")[0];
+            const content = parseHTML(`
+            <div>
+                <table class="table table-hover" id="TaxTable-${this.id}">
+                    <thead>
+                        <tr>
+                            <th scope="col">Rate</th>
+                            <th scope="col">Minimum</th>
+                            <th scope="col">Maximum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <button class="btn" id="TaxTable-AddRow-${this.id}"><i class="bi bi-plus-circle"></i> Add Row</button>
+            </div>
+            `);
+            const tbody_node = content.getElementsByTagName("tbody")[0];
+            for (const bracket of this.brackets) {
+                tbody_node.appendChild(this.__create_bracket_row(bracket));
+            }
+            const add_row_button = content.querySelector(`#TaxTable-AddRow-${this.id}`);
+            add_row_button.addEventListener("click", (event) => {
+                let rate = 0;
+                let min = 0;
+                let max = 0;
+                if (this.brackets.length > 0) {
+                    rate = this.brackets[this.brackets.length - 1].rate.value;
+                    min = this.brackets[this.brackets.length - 1].max.value + 1;
+                    max = min;
+                }
+                this.add_bracket(rate, min, max);
+            });
+            body.appendChild(content);
+
+            return template;
+        }
+
+        add_bracket(rate, min, max) {
+            this.brackets.push(new TaxBracket(rate, min, max));
+            const table = document.getElementById(`TaxTable-${this.id}`);
+            if (table != null) {
+                const tbody_node = table.getElementsByTagName("tbody")[0];
+                tbody_node.appendChild(this.__create_bracket_row(this.brackets[this.brackets.length - 1]));
+            }
+        }
+
+        __create_bracket_row(bracket) {
+            const row = document.createElement("tr");
+            const rate_td = document.createElement("td");
+            rate_td.appendChild(this.generate_input_template(
+                null,
+                {step: "any", min: 0},
+                bracket.rate
+            ));
+            const min_td = document.createElement("td");
+            min_td.appendChild(this.generate_input_template(
+                null,
+                {step: "any", min: 0},
+                bracket.min
+            ));
+            const max_td = document.createElement("td");
+            max_td.appendChild(this.generate_input_template(
+                null,
+                {step: "any", min: 0},
+                bracket.max
+            ));
+
+            row.append(rate_td, min_td, max_td);
+            return row;
+        }
+
+        do_calculate_tax(amount, year = 0) {
+            var tax = 0;
+            for (const bracket of this.brackets) {
+                amount -= bracket.min.value * Math.pow(1 + global_info.inflation.value / 100, year);
+                if (amount > 0) {
+                    tax += (bracket.rate.value/100) * Math.min(amount, bracket.max.value * Math.pow(1 + global_info.inflation.value / 100, year));
+                }
+                else {
+                    break;
+                }
+            }
+
+            return tax;
+        }
+    }
+
+    const accounts_node = document.getElementById("accounts");
+    const add_account_node = document.getElementById("add_account");
+
+    const taxes_node = document.getElementById("taxes");
+    const add_tax_node = document.getElementById("add_tax");
+
+    let accounts = [];
+    let taxes = [];
+
+    function add_account_button(account_type) {
+        const account = new account_type('');
+        account.name.set_value(`${account.config_name()} ${account.id}`);
+        account.add();
+    }
+    
+    function add_tax_button(tax_type) {
+        const tax = new tax_type('');
+        tax.name.set_value(`${tax.config_name()} ${tax.id}`);
+        tax.add();
+    }
+
+    var investment_by_type_chart = new Chart(document.getElementById("InvestmentByType"), {
+        type: 'bar',
+        data: {
+            labels: global_info.data.ages,
+            datasets: []
+        },
+        options: {
+            scales: {
+                y: {
+                    ticks: {
+                        callback: function(val, index) {
+                            return USDollar.format(val);
+                        }
+                    }
+                }
+            },
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ": " + USDollar.format(parseFloat(context.parsed.y));
+                        }
+                    }
+                },
+                colors: {
+                    forceOverride: true
+                }
+            }
+        }
+    });
+
+    class TaxSheet {
+        static element_w2 = document.getElementById("Tax-Sheet-W2");
+        static element_section125 = document.getElementById("Tax-Sheet-Section125");
+        static element_hsa = document.getElementById("Tax-Sheet-HSA");
+        static element_fica = document.getElementById("Tax-Sheet-FICA");
+        static element_fica_tax = document.getElementById("Tax-Sheet-FICA-Tax");
+        static element_ira = document.getElementById("Tax-Sheet-IRA");
+        static element_401k = document.getElementById("Tax-Sheet-401K");
+        static element_agi = document.getElementById("Tax-Sheet-AGI");
+        static element_deductions = document.getElementById("Tax-Sheet-Deductions");
+        static element_taxable = document.getElementById("Tax-Sheet-Taxable");
+        static element_tax = document.getElementById("Tax-Sheet-Tax");
+        static element_after_tax = document.getElementById("Tax-Sheet-After-Tax");
+        static element_after_tax2 = document.getElementById("Contribution-Sheet-After-Tax");
+        
+        constructor() {
+            this.section125 = new int_property(0);
+            this.fed_deduction = new int_property(29200);
+            TaxSheet.element_section125.appendChild(
+                generate_input_template(
+                    null,
+                    {id: "section125", min: 0, step: "any"},
+                    this.section125
+                )
+            );
+
+            TaxSheet.element_deductions.appendChild(
+                generate_input_template(
+                    null,
+                    {id: "fed_deduction", min: 0, step: "any"},
+                    this.fed_deduction
+                )
+            );
+
+            this.section125.subscribe((value) => {
+                this.update_fica_taxable();
+            });
+            this.fed_deduction.subscribe((value) => {
+                this.update_taxable();
+            });
+        }
+
+        fica_taxable() {
+            return Math.max(0, global_info.income.value - this.section125.value - this.hsa_contributions());
+        }
+
+        fica_tax() {
+            const amount = taxes.filter((tax) => tax.enabled.value && tax.income_sources.value.includes(fica_taxable_income_source))
+                                .map(   (tax) => tax.calculate_tax())
+                                .reduce((sum, rhs) => sum + rhs, 0);
+
+            return amount;
+        }
+
+        hsa_contributions() {
+            const amount = accounts.filter((account) => account.enabled.value && account instanceof HSA)
+                                   .map(   (account) => account.contribution.value)
+                                   .reduce((sum, rhs) => sum + rhs, 0);
+
+            return amount * 12;
+        }
+
+        ira_contributions() {
+            const amount = accounts.filter((account) => account.enabled.value && account instanceof TradIRA)
+                                   .map(   (account) => account.contribution.value)
+                                   .reduce((sum, rhs) => sum + rhs, 0);
+
+            return amount * 12;
+        }
+
+        _401K_contributions() {
+            const amount = accounts.filter((account) => account.enabled.value && account instanceof Trad401K)
+                                   .map(   (account) => account.contribution.value)
+                                   .reduce((sum, rhs) => sum + rhs, 0);
+
+            return amount * 12;
+        }
+
+        adjusted_gross_income() {
+            return Math.max(0, this.fica_taxable() - this.ira_contributions() - this._401K_contributions());
+        }
+
+        fed_taxable() {
+            return Math.max(0, this.adjusted_gross_income() - this.fed_deduction.value);
+        }
+
+        tax() {
+            const amount = taxes.filter((tax) => tax.enabled.value && (tax.income_sources.value.includes(taxable_income_source) || tax.income_sources.value.includes(adjusted_gross_income_source)))
+                                .map(   (tax) => tax.calculate_tax())
+                                .reduce((sum, rhs) => sum + rhs, 0);
+
+            return amount;
+        }
+
+        after_tax() {
+            return Math.max(0, global_info.income.value - this.section125.value - this.hsa_contributions() - this.fica_tax() - this.ira_contributions() -  this._401K_contributions() - this.tax());
+        }
+
+        update_hsa() {
+            TaxSheet.element_hsa.innerText = USDollar_Rounded.format(this.hsa_contributions());
+            this.update_fica_taxable();
+        }
+
+        update_income(value) {
+            TaxSheet.element_w2.innerText = USDollar_Rounded.format(value);
+            this.update_fica_taxable();
+            this.update_adjusted_gross_income();
+        }
+
+        update_fica_taxable() {
+            TaxSheet.element_fica.innerText = USDollar_Rounded.format(this.fica_taxable());
+            this.update_fica_tax();
+            this.update_adjusted_gross_income();
+        }
+
+        update_fica_tax() {
+            TaxSheet.element_fica_tax.innerText = USDollar_Rounded.format(this.fica_tax());
+            this.update_after_tax();
+        }
+
+        update_ira_contributions() {
+            TaxSheet.element_ira.innerText = USDollar_Rounded.format(this.ira_contributions());
+            this.update_adjusted_gross_income();
+        }
+
+        update_401K_contributions() {
+            TaxSheet.element_401k.innerText = USDollar_Rounded.format(this._401K_contributions());
+            this.update_adjusted_gross_income();
+        }
+
+        update_adjusted_gross_income() {
+            TaxSheet.element_agi.innerText = USDollar_Rounded.format(this.adjusted_gross_income());
+            this.update_taxable();
+        }
+
+        update_taxable() {
+            TaxSheet.element_taxable.innerText = USDollar_Rounded.format(this.fed_taxable());
+            this.update_tax();
+        }
+
+        update_tax() {
+            TaxSheet.element_tax.innerText = USDollar_Rounded.format(this.tax());
+            this.update_after_tax();
+        }
+
+        update_after_tax() {
+            const amount = this.after_tax();
+            TaxSheet.element_after_tax.innerText = USDollar_Rounded.format(amount);
+            TaxSheet.element_after_tax2.innerText = USDollar_Rounded.format(amount);
+            ContributionStrategy.update_leftover();
+        }
+    }
+
+    const tax_sheet = new TaxSheet();
+
+    global_info.age.subscribe((value) => {
+        for (const account of accounts) {
+            account.update_ages();
+            account.update_contributions();
+        }
+        WithdrawalStrategy.update_ages();
+    });
+
+    global_info.retirement_age.subscribe((value) => {
+        for (const account of accounts) {
+            account.update_ages();
+            account.update_contributions();
+        }
+        WithdrawalStrategy.update_ages();
+    });
+
+    global_info.life_expectancy.subscribe((value) => {
+        for (const account of accounts) {
+            account.update_ages();
+            account.update_contributions();
+        }
+        WithdrawalStrategy.update_ages();
+    });
+
+    global_info.income.subscribe((value) => {
+        tax_sheet.update_income(value);
+    });
+
+    global_info.expenses.subscribe((value) => {
+        ContributionStrategy.update_expenses();
+        WithdrawalStrategy.update_expenses();
+    });
+
+    global_info.inflation.subscribe((value) => {
+        WithdrawalStrategy.update_expenses();
+    });
+
+    const federal_income_tax_individual = new TaxTable("Federal Income (Individual)", taxable_income_source);
+    federal_income_tax_individual.add_bracket(10, 0, 11600);
+    federal_income_tax_individual.add_bracket(12, 11601, 47150);
+    federal_income_tax_individual.add_bracket(22, 47151, 100525);
+    federal_income_tax_individual.add_bracket(24, 100526, 191950);
+    federal_income_tax_individual.add_bracket(32, 191951, 243725);
+    federal_income_tax_individual.add_bracket(35, 243726, 609350);
+    federal_income_tax_individual.add_bracket(37, 609351, 999999999999);
+    federal_income_tax_individual.enabled.set_value(false);
+    federal_income_tax_individual.add();
+
+    const federal_income_tax_married = new TaxTable("Federal Income (Married)", taxable_income_source);
+    federal_income_tax_married.add_bracket(10, 0, 23200);
+    federal_income_tax_married.add_bracket(12, 23201, 94300);
+    federal_income_tax_married.add_bracket(22, 94301, 201050);
+    federal_income_tax_married.add_bracket(24, 201051, 383900);
+    federal_income_tax_married.add_bracket(32, 383901, 487450);
+    federal_income_tax_married.add_bracket(35, 487451, 731200);
+    federal_income_tax_married.add_bracket(37, 731201, 999999999999);
+    federal_income_tax_married.add();
+
+    const fica_ss_tax = new FlatTax("FICA Social Security", fica_taxable_income_source);
+    fica_ss_tax.rate.set_value(6.2);
+    fica_ss_tax.add();
+
+    const fica_med_tax = new FlatTax("FICA Medicare", fica_taxable_income_source);
+    fica_med_tax.rate.set_value(1.45);
+    fica_med_tax.add();
+
+    update_dashboard_table();
+</script>
+
+    </div>
+    <footer class="text-center footer mt-auto">
+        <div class="py-2">&copy; 2024 by Collin Moon</div>
+    </footer>
+
+    <script>
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    </script>
+</body>
+</html>
