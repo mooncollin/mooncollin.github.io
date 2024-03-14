@@ -168,8 +168,8 @@
                         <tr>
                             <th>Age</th>
                             <th>Future Value</th>
+                            <th>Monthly After-Tax Income</th>
                             <th>Monthly Expenses</th>
-                            <th>Monthly Income</th>
                             <th>Leftover Income</th>
                         </tr>
                     </thead>
@@ -236,6 +236,10 @@
                             <td><hr></td>
                         </tr>
                         <tr>
+                            <td class="fw-bold text-center">Federal Marginal Tax Rate</td>
+                            <td id="Tax-Sheet-Marginal">0%</td>
+                        </tr>
+                        <tr>
                             <td class="fw-bold text-center">Income Tax</td>
                             <td id="Tax-Sheet-Tax">$0</td>
                         </tr>
@@ -290,6 +294,7 @@
                             <th>Age</th>
                             <th>Monthly Expenses</th>
                             <th>Amount Owed</th>
+                            <th>Marginal Tax Rate</th>
                             <th>Taxes Paid</th>
                             <th>Cumulative Taxes Paid</th>
                         </tr>
@@ -370,7 +375,8 @@
                                          tax != fica_med_tax &&
                                          tax != fica_ss_tax).map((tax) => tax.serialize()),
             contributionOrder: ContributionStrategy.contributionOrder.map((obj) => obj.serialize()),
-            withdrawalOrder: WithdrawalStrategy.withdrawalOrder.map((obj) => obj.serialize())
+            withdrawalOrder: WithdrawalStrategy.withdrawalOrder.map((obj) => obj.serialize()),
+            taxStrategy: TaxStrategy.serialize()
         };
 
         return JSON.stringify(data_obj);
@@ -413,6 +419,7 @@
         };
 
         global_info.deserialize(obj.global_info);
+        TaxStrategy.deserialize(obj.taxStrategy);
 
         for (const tax_data of obj.taxes) {
             const type = tax_type_table[tax_data.type] || null;
@@ -480,6 +487,15 @@
             }
         }
     }
+
+    const accounts_node = document.getElementById("accounts");
+    const add_account_node = document.getElementById("add_account");
+
+    const taxes_node = document.getElementById("taxes");
+    const add_tax_node = document.getElementById("add_tax");
+
+    let accounts = [];
+    let taxes = [];
 
     class GlobalInfo {
         constructor() {
@@ -616,50 +632,848 @@
             this.inflation.set_value(obj.inflation);
         }
     }
+    const global_info = new GlobalInfo();
 
-    function update_dashboard_table() {
-        const table_body = document.getElementById(`Dashboard-Table`).getElementsByTagName("tbody")[0];
-        table_body.innerHTML = '';
+    class TaxStrategy {
+        static element_w2 = document.getElementById("Tax-Sheet-W2");
+        static element_section125 = document.getElementById("Tax-Sheet-Section125");
+        static element_hsa = document.getElementById("Tax-Sheet-HSA");
+        static element_fica = document.getElementById("Tax-Sheet-FICA");
+        static element_fica_tax = document.getElementById("Tax-Sheet-FICA-Tax");
+        static element_ira = document.getElementById("Tax-Sheet-IRA");
+        static element_401k = document.getElementById("Tax-Sheet-401K");
+        static element_agi = document.getElementById("Tax-Sheet-AGI");
+        static element_deductions = document.getElementById("Tax-Sheet-Deductions");
+        static element_taxable = document.getElementById("Tax-Sheet-Taxable");
+        static element_tax = document.getElementById("Tax-Sheet-Tax");
+        static element_marginal = document.getElementById("Tax-Sheet-Marginal");
+        static element_after_tax = document.getElementById("Tax-Sheet-After-Tax");
+        static element_after_tax2 = document.getElementById("Contribution-Sheet-After-Tax");
 
-        const inflation_rate = 1 + (global_info.inflation.value / 100);
+        static section125 = new int_property(0);
+        static fed_deduction = new int_property(29200);
 
-        var current_income = tax_sheet.after_tax() / 12;
+        static {
+            TaxStrategy.element_section125.appendChild(
+                generate_input_template(
+                    null,
+                    {id: "section125", min: 0, step: "any"},
+                    TaxStrategy.section125
+                )
+            );
+
+            TaxStrategy.element_deductions.appendChild(
+                generate_input_template(
+                    null,
+                    {id: "fed_deduction", min: 0, step: "any"},
+                    TaxStrategy.fed_deduction
+                )
+            );
+
+            TaxStrategy.section125.subscribe((value) => {
+                TaxStrategy.update_fica_taxable();
+            });
+            TaxStrategy.fed_deduction.subscribe((value) => {
+                TaxStrategy.update_taxable();
+            });
+        }
+
+        static serialize() {
+            return {
+                section125: TaxStrategy.section125.value,
+                fed_deduction: TaxStrategy.fed_deduction.value
+            }
+        }
+
+        static deserialize(obj) {
+            this.section125.set_value(obj.section125);
+            this.fed_deduction.set_value(obj.fed_deduction);
+        }
+
+        static fica_taxable(year = 0) {
+            if ((year + global_info.age.value) >= global_info.retirement_age.value) {
+                return 0;
+            }
+            
+            return Math.max(0, global_info.income.value - TaxStrategy.section125.value - TaxStrategy.hsa_contributions());
+        }
+
+        static fica_tax(year = 0) {
+            const fica_income = TaxStrategy.fica_taxable(year);
+            let amount = 0;
+            for (const tax of taxes) {
+                if (tax.enabled.value) {
+                    if (tax.income_sources.value.includes(fica_taxable_income_source)) {
+                        amount += tax.calculate_tax(fica_income, year);
+                    }
+                }
+            }
+
+            return amount;
+        }
+
+        static hsa_contributions() {
+            let amount = 0;
+            for (const account of accounts) {
+                if (account.enabled.value) {
+                    if (account instanceof HSA) {
+                        amount += account.contribution.value;
+                    }
+                }
+            }
+
+            return amount * 12;
+        }
+
+        static ira_contributions() {
+            let amount = 0;
+            for (const account of accounts) {
+                if (account.enabled.value) {
+                    if (account instanceof TradIRA) {
+                        amount += account.contribution.value;
+                    }
+                }
+            }
+
+            return amount * 12;
+        }
+
+        static _401K_contributions() {
+            let amount = 0;
+            for (const account of accounts) {
+                if (account.enabled.value) {
+                    if (account instanceof Trad401K) {
+                        amount += account.contribution.value;
+                    }
+                }
+            }
+
+            return amount * 12;
+        }
+
+        static adjusted_gross_income(year = 0) {
+            if ((year + global_info.age.value) >= global_info.retirement_age.value) {
+                let amount = 0;
+                for (const account of accounts) {
+                    if (account.enabled.value) {
+                        if (account instanceof PreTaxInvestmentAccount) {
+                            amount += account.data.withdrawals[year];
+                        }
+                        else if (account instanceof SocialSecurity)
+                        {
+
+                        }
+                        else if (account instanceof Annuity) {
+                            amount += account.data.withdrawals[year];
+                        }
+                    }
+                }
+
+                return amount * 12;
+            }
+            return Math.max(0, TaxStrategy.fica_taxable() - TaxStrategy.ira_contributions() - TaxStrategy._401K_contributions());
+        }
+
+        static ltcg_taxable(year = 0) {
+            if ((year + global_info.age.value) >= global_info.retirement_age.value) {
+                let amount = 0;
+                for (const account of accounts) {
+                    if (account.enabled.value) {
+                        if (account instanceof TaxableBrokerage) {
+                            amount += account.data.withdrawals[year];
+                        }
+                    }
+                }
+
+                return amount;
+            }
+
+            return 0;
+        }
+
+        static fed_deduction_value(year = 0) {
+            return TaxStrategy.fed_deduction.value * Math.pow(1 + global_info.inflation.value / 100, year);
+        }
+
+        static fed_taxable(year = 0) {
+            return Math.max(0, TaxStrategy.fed_taxable2(year));
+        }
+
+        static fed_taxable2(year = 0) {
+            return TaxStrategy.adjusted_gross_income(year) + TaxStrategy.ss_taxable(year) - TaxStrategy.fed_deduction_value(year);
+        }
+
+        static ss_taxable(year = 0) {
+            let ss_withdrawals = 0;
+            for (const account of accounts) {
+                if (account.enabled.value) {
+                    if (account instanceof SocialSecurity) {
+                        ss_withdrawals += account.data.withdrawals[year];
+                    }
+                }
+            }
+            ss_withdrawals *= 12;
+
+            const combined_income = TaxStrategy.adjusted_gross_income() + ss_withdrawals / 2;
+            const low_bracket = federal_income_tax_individual.enabled.value ? 25000 : 34000;
+            const high_bracket = federal_income_tax_individual.enabled.value ? 32000 : 44000;
+
+            let dif = 0;
+            let rate = 0;
+            if (combined_income >= high_bracket) {
+                dif = combined_income - high_bracket;
+                rate = 0.85;
+            } else if (combined_income >= low_bracket) {
+                dif = combined_income - low_bracket;
+                rate = 0.50;
+            }
+
+            const choice = Math.min(dif, ss_withdrawals);
+            return choice * rate;
+        }
+
+        static gather_incomes(year, ...income_sources) {
+            let amounts = {};
+            for (const source of income_sources) {
+                switch (source.id) {
+                    case fica_taxable_income_source.id:
+                        amounts[fica_taxable_income_source.id] = TaxStrategy.fica_taxable(year);
+                        break;
+                    case adjusted_gross_income_source.id:
+                        amounts[adjusted_gross_income_source.id] = TaxStrategy.adjusted_gross_income(year);
+                        break;
+                    case taxable_income_source.id:
+                        amounts[taxable_income_source.id] = TaxStrategy.fed_taxable(year);
+                        break;
+                    case long_term_capital_gains_source.id:
+                        amounts[long_term_capital_gains_source.id] = TaxStrategy.ltcg_taxable(year);
+                        break;
+                    case social_security_source.id:
+                        amounts[adjusted_gross_income_source.id] = (amounts[adjusted_gross_income_source.id] || 0) + TaxStrategy.ss_taxable();
+                        break;
+                }
+            }
+
+            return amounts;
+        }
+
+        static tax(year, ...income_sources) {
+            const amounts = TaxStrategy.gather_incomes(year, ...income_sources);
+
+            let amount = 0;
+            for (const tax of taxes) {
+                if (tax.enabled.value) {
+                    for (const income_source of tax.income_sources.value) {
+                        const source = amounts[income_source.id] || null;
+                        if (source != null) {
+                            amount += tax.calculate_tax(source, year);
+                        }
+                    }
+                }
+            }
+
+            return amount;
+        }
+
+        static after_tax(year = 0) {
+            let withdrawals = 0;
+            for (const obj of WithdrawalStrategy.withdrawalOrder) {
+                withdrawals += obj.account.data.withdrawals[year];
+            }
+            withdrawals *= 12;
+            let income = 0;
+            if (global_info.data.ages[year] < global_info.retirement_age.value) {
+                income = global_info.income.value * Math.pow(1 + global_info.inflation.value / 100, year);
+            }
+            return Math.max(0, (income + withdrawals) - TaxStrategy.tax(year, ...all_income_sources));
+        }
         
-        for (let idx = 0; idx < global_info.data.ages.length; ++idx) {
-            var current_expenses = global_info.data.expenses[idx] / 12;
-            var row = document.createElement("tr");
-            var age_column = document.createElement("td");
-            var value_column = document.createElement("td");
-            var expenses_column = document.createElement("td");
-            var income_column = document.createElement("td");
-            var leftover_column = document.createElement("td");
+        static federal_marginal_bracket(year = 0) {
+            let found_tax = null;
+            for (const tax of taxes) {
+                if (tax.enabled.value) {
+                    if (tax.id === federal_income_tax_individual.id) {
+                        found_tax = federal_income_tax_individual;
+                        break;
+                    }
+                    else if (tax.id === federal_income_tax_married.id) {
+                        found_tax = federal_income_tax_married;
+                        break;
+                    }
+                }
+            }
 
-            const value = investment_by_type_chart.data.datasets.map((data) => data.data[idx])
-                                                                .reduce((sum, rhs) => sum + rhs, 0);
+            if (found_tax != null) {
+                const amounts = TaxStrategy.gather_incomes(year, taxable_income_source);
+                return found_tax.calculate_marginal(Math.max(0, amounts[taxable_income_source.id]), year);
+            }
 
-            age_column.innerText = `${global_info.data.ages[idx]}`;
-            value_column.innerText = USDollar.format(value);
-            expenses_column.innerText = USDollar.format(current_expenses);
-            income_column.innerText = USDollar.format(current_income);
-            leftover_column.innerText = USDollar.format(current_income - current_expenses);
-            row.append(age_column, value_column, expenses_column, income_column, leftover_column);
-            table_body.append(row);
+            return 0;
+        }
 
-            current_income *= inflation_rate;
+        static leftover_income(year = 0) {
+            return TaxStrategy.after_tax(year) - global_info.expenses.value * Math.pow(1 + global_info.inflation.value / 100, year);
+        }
 
-            if (global_info.data.ages[idx] >= global_info.retirement_age.value) {
-                current_income *= 0;
+        static update_hsa() {
+            TaxStrategy.element_hsa.innerText = USDollar_Rounded.format(TaxStrategy.hsa_contributions());
+            TaxStrategy.update_fica_taxable();
+        }
+
+        static update_income(value) {
+            TaxStrategy.element_w2.innerText = USDollar_Rounded.format(value);
+            TaxStrategy.update_fica_taxable();
+            TaxStrategy.update_adjusted_gross_income();
+        }
+
+        static update_fica_taxable() {
+            TaxStrategy.element_fica.innerText = USDollar_Rounded.format(TaxStrategy.fica_taxable());
+            TaxStrategy.update_fica_tax();
+            TaxStrategy.update_adjusted_gross_income();
+        }
+
+        static update_fica_tax() {
+            TaxStrategy.element_fica_tax.innerText = USDollar_Rounded.format(TaxStrategy.fica_tax());
+            TaxStrategy.update_after_tax();
+        }
+
+        static update_ira_contributions() {
+            TaxStrategy.element_ira.innerText = USDollar_Rounded.format(TaxStrategy.ira_contributions());
+            TaxStrategy.update_adjusted_gross_income();
+        }
+
+        static update_401K_contributions() {
+            TaxStrategy.element_401k.innerText = USDollar_Rounded.format(TaxStrategy._401K_contributions());
+            TaxStrategy.update_adjusted_gross_income();
+        }
+
+        static update_adjusted_gross_income() {
+            TaxStrategy.element_agi.innerText = USDollar_Rounded.format(TaxStrategy.adjusted_gross_income());
+            TaxStrategy.update_taxable();
+        }
+
+        static update_taxable() {
+            TaxStrategy.element_taxable.innerText = USDollar_Rounded.format(TaxStrategy.fed_taxable());
+            TaxStrategy.update_tax();
+        }
+
+        static update_tax() {
+            TaxStrategy.element_tax.innerText = USDollar_Rounded.format(TaxStrategy.tax(0, ...all_income_sources));
+            TaxStrategy.element_marginal.innerText = `${TaxStrategy.federal_marginal_bracket()}%`;
+            TaxStrategy.update_after_tax();
+        }
+
+        static update_after_tax() {
+            const amount = TaxStrategy.after_tax();
+            TaxStrategy.element_after_tax.innerText = USDollar_Rounded.format(amount);
+            TaxStrategy.element_after_tax2.innerText = USDollar_Rounded.format(amount);
+            ContributionStrategy.update_leftover();
+        }
+    }
+
+    class ContributionStrategy {
+        static Contribution = class {
+            constructor(account, priority) {
+                this.account = account;
+                this.priority = priority;
+                this.node = null;
+            }
+
+            serialize() {
+                return this.account.id;
+            }
+        };
+
+        static contributions = document.getElementById("nav-contributions");
+        static contribution_expenses = document.getElementById("Contribution-Sheet-Expenses");
+        static contribution_leftover = document.getElementById("Contribution-Sheet-Leftover");
+        static priority = {
+            HSA: 1,
+            TradIRA: 2,
+            Trad401K: 3
+        };
+        static contributionOrder = [];
+
+        static update_expenses() {
+            ContributionStrategy.contribution_expenses.innerText = USDollar.format(global_info.expenses.value);
+            ContributionStrategy.update_leftover();
+        }
+
+        static update_leftover() {
+            ContributionStrategy.contribution_leftover.innerText = USDollar.format(TaxStrategy.leftover_income());
+            ContributionStrategy.__update_contributions(0);
+        }
+
+        static __update_contributions(idx, leftover = null) {
+            if (idx >= ContributionStrategy.contributionOrder.length) {
+                return;
+            }
+
+            const obj = ContributionStrategy.contributionOrder[idx];
+            if (obj.account instanceof AfterTaxInvestmentAccount) {
+                if (leftover === null) {
+                    leftover = TaxStrategy.leftover_income() / 12;
+                    for (let idx2 = 0; idx2 < idx; ++idx2) {
+                        const obj2 = ContributionStrategy.contributionOrder[idx2];
+                        if (obj2.account instanceof AfterTaxInvestmentAccount) {
+                            leftover -= obj2.account.contribution.value;
+                        }
+                    }
+                    leftover = Math.max(0, leftover);
+                }
+                obj.account.available.set_value(leftover);
+                if (obj.account.enabled.value) {
+                    leftover -= obj.account.contribution.value;
+                    leftover = Math.max(0, leftover);
+                }
+            }
+
+            ContributionStrategy.__update_contributions(idx + 1, leftover);
+        }
+
+        static after_update_contributions(account) {
+            const idx = ContributionStrategy.contributionOrder.findIndex((obj) => obj.account.id === account.id);
+            if (idx != -1) {
+                ContributionStrategy.__update_contributions(idx + 1);
+            }
+        }
+
+        static update_contributions(account) {
+            const idx = ContributionStrategy.contributionOrder.findIndex((obj) => obj.account.id === account.id);
+            if (idx != -1) {
+                ContributionStrategy.__update_contributions(idx);
+            }
+        }
+
+        static shift_contribution(account, dir) {
+            const idx = ContributionStrategy.contributionOrder.findIndex((obj) => obj.account.id === account.id);
+            if (idx != -1) {
+                var move = idx + dir;
+                if (move >= 0 && move < ContributionStrategy.contributionOrder.length) {
+                    var floor = ContributionStrategy.contributionOrder.findIndex((obj) => obj.priority == null);
+                    if (floor != -1) {
+                        floor -= 1;
+                    }
+                    if (move > floor) {
+                        const obj = ContributionStrategy.contributionOrder[idx];
+                        ContributionStrategy.contributionOrder.splice(idx, 1);
+                        ContributionStrategy.contributionOrder.splice(move, 0, obj);
+                        if (move === (ContributionStrategy.contributionOrder.length - 1)) {
+                            obj.node = ContributionStrategy.contributions.appendChild(obj.node);
+                        }
+                        else {
+                            obj.node = ContributionStrategy.contributions.insertBefore(obj.node, ContributionStrategy.contributionOrder[move + 1].node);
+                        }
+
+                        if (dir > 0) {
+                            ContributionStrategy.__update_contributions(idx);
+                        }
+                        else {
+                            ContributionStrategy.__update_contributions(move);
+                        }
+                    }
+                }
+            }
+        }
+
+        static add_contribution(account) {
+            const node = account.get_contribution_template();
+            const myPriority = ContributionStrategy.priority[account.constructor.name] || null;
+
+            var foundChild = null;
+            var idx = ContributionStrategy.contributionOrder.length;
+            if (myPriority != null) {
+                for (idx = 0; idx < ContributionStrategy.contributionOrder.length; ++idx) {
+                    const obj = ContributionStrategy.contributionOrder[idx];
+                    if (obj.priority === null) {
+                        break;
+                    }
+
+                    if (obj.priority > myPriority) {
+                        break;
+                    }
+                }
+            }
+
+            const myObj = new ContributionStrategy.Contribution(account, myPriority);
+            var otherNode = null;
+            if (idx != ContributionStrategy.contributionOrder.length) {
+                otherNode = ContributionStrategy.contributionOrder[idx].node;
+            }
+            myObj.node = ContributionStrategy.contributions.insertBefore(node, otherNode);
+            ContributionStrategy.contributionOrder.splice(idx, 0, myObj);
+
+            ContributionStrategy.__update_contributions(idx);
+        }
+
+        static remove_contribution(account) {
+            const idx = ContributionStrategy.contributionOrder.findIndex((obj) => obj.account.id === account.id);
+            if (idx != -1) {
+                const obj = ContributionStrategy.contributionOrder[idx];
+                obj.node.remove();
+                ContributionStrategy.contributionOrder.splice(idx, 1);
+                account.contribution.set_value(0);
+                ContributionStrategy.__update_contributions(idx);
             }
         }
     }
 
-    const global_info = new GlobalInfo();
+    class WithdrawalStrategy {
+        static Withdrawal = class {
+            constructor(account, priority) {
+                this.account = account;
+                this.priority = priority;
+                this.node = null;
+                this.name_sub = null;
+                this.header = null;
+            }
 
-    let global_id = 1;
+            serialize() {
+                return this.account.id;
+            }
+        }
+
+        static withdrawals = document.getElementById("Withdrawals");
+        static withdrawal_canvas = document.getElementById("WithdrawalByType"); 
+        static withdrawal_chart = null;
+        static withdrawal_table = document.getElementById("Withdrawal-Table");
+        static withdrawal_table_body = WithdrawalStrategy.withdrawal_table.getElementsByTagName("tbody")[0];
+        static withdrawal_table_head = WithdrawalStrategy.withdrawal_table.getElementsByTagName("thead")[0];
+        static withdrawal_table_header_row = WithdrawalStrategy.withdrawal_table_head.getElementsByTagName("tr")[0];
+        static withdrawalOrder = [];
+        static data = {
+            withdrawalsFedTaxBracket: []
+        };
+        static priority = {
+            SocialSecurity: 1,
+            Annuity: 2
+        };
+
+        static {
+            WithdrawalStrategy.update_ages();
+        }
+
+        static update_ages() {
+            const current_age = global_info.age.value;
+            const retirement_age = global_info.retirement_age.value;
+            const year = Math.max(current_age, retirement_age) - current_age;
+
+            WithdrawalStrategy.withdrawal_table_body.innerHTML = '';
+            WithdrawalStrategy.data.withdrawalsFedTaxBracket.length = 0;
+
+            for (let idx = year; idx <= (global_info.life_expectancy.value - current_age); ++idx) {
+                const age = global_info.data.ages[idx];
+
+                const row = document.createElement("tr");
+                const age_column = document.createElement("td");
+                const expenses_column = document.createElement("td");
+                const amount_owed_column = document.createElement("td");
+                const marginal_column = document.createElement("td");
+                const taxes_column = document.createElement("td");
+                const cumulative_taxes_column = document.createElement("td");
+
+                age_column.innerText = age;
+                expenses_column.innerText = USDollar.format(0);
+                amount_owed_column.innerText = USDollar.format(0);
+                marginal_column.innerText = "0%";
+                taxes_column.innerText = USDollar.format(0);
+                cumulative_taxes_column.innerText = USDollar.format(0);
+
+                row.append(age_column, expenses_column);
+
+                for (const obj of WithdrawalStrategy.withdrawalOrder) {
+                    const data_column = document.createElement("td");
+                    data_column.innerText = USDollar.format(0);
+                    row.appendChild(data_column);
+                }
+
+                row.append(amount_owed_column, marginal_column, taxes_column, cumulative_taxes_column);
+                WithdrawalStrategy.withdrawal_table_body.appendChild(row);
+                WithdrawalStrategy.data.withdrawalsFedTaxBracket.push(0);
+            }
+
+            if (WithdrawalStrategy.withdrawal_chart === null) {
+                WithdrawalStrategy.withdrawal_chart = new Chart(WithdrawalStrategy.withdrawal_canvas, {
+                    data: {
+                        labels: global_info.data.ages,
+                        datasets: [
+                            {type: 'line', id: -1, label: 'Federal Tax Bracket', data: WithdrawalStrategy.data.withdrawalsFedTaxBracket, yAxisID: 'y1'}
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                min: global_info.retirement_age.value
+                            },
+                            y: {
+                                ticks: {
+                                    callback: function(val, index) {
+                                        return USDollar.format(val);
+                                    }
+                                }
+                            },
+                            y1: {
+                                position: 'right'
+                            }
+                        },
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        if (context.dataset.id === -1) {
+                                            return context.dataset.label + ": " + context.parsed.y + "%";
+                                        }
+                                        return context.dataset.label + ": " + USDollar.format(parseFloat(context.parsed.y));
+                                    }
+                                }
+                            },
+                            colors: {
+                                forceOverride: true
+                            }
+                        }
+                    }
+                });
+            }
+            else {
+                WithdrawalStrategy.withdrawal_chart.options.scales.x.min = global_info.retirement_age.value;
+                WithdrawalStrategy.withdrawal_chart.update();
+            }
+
+            WithdrawalStrategy.update_expenses();
+        }
+
+        static update_expenses() {
+            const current_age = global_info.age.value;
+            const retirement_age = global_info.retirement_age.value;
+            let year = Math.max(current_age, retirement_age) - current_age;
+
+            for (const row of WithdrawalStrategy.withdrawal_table_body.children) {
+                const expenses = global_info.data.expenses[year] / 12;
+                row.children[1].innerText = USDollar.format(expenses);
+                ++year;
+            }
+        }
+
+        static shift_withdrawal(account, dir) {
+            if (dir != 0) {
+                const idx = WithdrawalStrategy.withdrawalOrder.findIndex((obj) => obj.account.id === account.id);
+                if (idx != -1) {
+                    var move = idx + dir;
+                    if (move >= 0 && move < WithdrawalStrategy.withdrawalOrder.length) {
+                        var floor = WithdrawalStrategy.withdrawalOrder.findIndex((obj) => obj.priority == null);
+                        if (floor != -1) {
+                            floor -= 1;
+                        }
+                        if (move > floor) {
+                            const obj = WithdrawalStrategy.withdrawalOrder[idx];
+                            WithdrawalStrategy.withdrawalOrder.splice(idx, 1);
+                            WithdrawalStrategy.withdrawalOrder.splice(move, 0, obj);
+                            if (move === (WithdrawalStrategy.withdrawalOrder.length - 1)) {
+                                obj.node = WithdrawalStrategy.withdrawals.appendChild(obj.node);
+                                obj.header = WithdrawalStrategy.withdrawal_table_header_row.appendChild(obj.header);
+                            }
+                            else {
+                                obj.node = WithdrawalStrategy.withdrawals.insertBefore(obj.node, WithdrawalStrategy.withdrawalOrder[move + 1].node);
+                                obj.header = WithdrawalStrategy.withdrawal_table_header_row.insertBefore(obj.header, WithdrawalStrategy.withdrawalOrder[move + 1].header);
+                            }
+
+                            if (dir > 0) {
+                                WithdrawalStrategy.withdrawalOrder[idx].account.update_values();
+                            }
+                            else {
+                                account.update_values();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        static add_withdrawal(account) {
+            const node = account.get_withdrawal_template();
+            const myPriority = WithdrawalStrategy.priority[account.constructor.name] || null;
+
+            var foundChild = null;
+            var idx = WithdrawalStrategy.withdrawalOrder.length;
+            if (myPriority != null) {
+                for (idx = 0; idx < WithdrawalStrategy.withdrawalOrder.length; ++idx) {
+                    const obj = WithdrawalStrategy.withdrawalOrder[idx];
+                    if (obj.priority === null) {
+                        break;
+                    }
+
+                    if (obj.priority > myPriority) {
+                        break;
+                    }
+                }
+            }
+
+            const myObj = new WithdrawalStrategy.Withdrawal(account, myPriority);
+            var otherNode = null;
+            if (idx != WithdrawalStrategy.withdrawalOrder.length) {
+                otherNode = WithdrawalStrategy.withdrawalOrder[idx].node;
+            }
+            myObj.node = WithdrawalStrategy.withdrawals.insertBefore(node, otherNode);
+            WithdrawalStrategy.withdrawalOrder.splice(idx, 0, myObj);
+
+            const header = document.createElement("th");
+            header.innerText = account.name.value;
+            myObj.name_sub = account.name.subscribe((value) => {
+                header.innerText = value;
+                for (const dataset of WithdrawalStrategy.withdrawal_chart.data.datasets) {
+                    if (dataset.id === account.id) {
+                        dataset.label = value;
+                        WithdrawalStrategy.withdrawal_chart.update();
+                        break;
+                    }
+                }
+            });
+            myObj.header = header;
+
+            WithdrawalStrategy.withdrawal_table_header_row.insertBefore(header, WithdrawalStrategy.withdrawal_table_header_row.children[idx + 2]);
+            for (const row of WithdrawalStrategy.withdrawal_table_body.getElementsByTagName("tr")) {
+                const columns = row.getElementsByTagName("td");
+                const data = document.createElement("td");
+                data.innerText = USDollar.format(0);
+                row.insertBefore(data, columns[idx + 2]);
+            }
+            account.update_values();
+            WithdrawalStrategy.withdrawal_chart.data.datasets.push(
+                {type: 'bar', id: account.id, label: account.name.value, data: account.data.withdrawals, borderWidth: 2, stack: ''}
+            );
+            WithdrawalStrategy.withdrawal_chart.update();
+        }
+
+        static remove_withdrawal(account) {
+            const idx = WithdrawalStrategy.withdrawalOrder.findIndex((obj) => obj.account.id === account.id);
+            if (idx != -1) {
+                const obj = WithdrawalStrategy.withdrawalOrder[idx];
+                obj.node.remove();
+                account.name.unsubscribe(obj.name_sub);
+                WithdrawalStrategy.withdrawal_table_header_row.removeChild(WithdrawalStrategy.withdrawal_table_header_row.children[idx + 2]);
+                for (const row of WithdrawalStrategy.withdrawal_table_body.getElementsByTagName("tr")) {
+                    row.getElementsByTagName("td")[idx + 2].remove();
+                }
+                WithdrawalStrategy.withdrawalOrder.splice(idx, 1);
+                if (idx < WithdrawalStrategy.withdrawalOrder.length) {
+                    WithdrawalStrategy.withdrawalOrder[idx].account.update_values();
+                }
+
+                const chart_idx = WithdrawalStrategy.withdrawal_chart.data.datasets.findIndex((dataset) => dataset.id === obj.account.id);
+                if (chart_idx != -1) {
+                    WithdrawalStrategy.withdrawal_chart.data.datasets.splice(chart_idx, 1);
+                    WithdrawalStrategy.withdrawal_chart.update();
+                }
+            }
+        }
+
+        static update_values(account = null) {
+            let start_idx = 0;
+            if (account != null) {
+                start_idx = WithdrawalStrategy.withdrawalOrder.findIndex((obj) => obj.account.id === account.id);
+            }
+
+            if (start_idx != -1 && start_idx < WithdrawalStrategy.withdrawalOrder.length) {
+                /*
+                *  The algorithm is:
+                *
+                *  For each year:
+                *     If in a retirement year:
+                *        Calculate the withdrawal of each account on and after the account parameter.
+                *        Calculate the conversion of each account. Withdrawals from an account in lower priority can
+                *        affect conversions from account higher in priority.
+                *        Update the withdrawal ui.
+                *     Update account value.
+                */
+                let cumulative_taxes = 0;
+                for (const [idx, age] of enumerate(global_info.data.ages)) {
+                    if (age >= global_info.retirement_age.value) {
+                        // Calculate withdrawals
+                        const table_row = WithdrawalStrategy.withdrawal_table_body.children[age - global_info.retirement_age.value];
+                        let expenses = global_info.data.expenses[idx] / 12;
+                        for (let obj_idx = 0; obj_idx < WithdrawalStrategy.withdrawalOrder.length; ++obj_idx) {
+                            const account = WithdrawalStrategy.withdrawalOrder[obj_idx].account;
+                            if (obj_idx < start_idx) {
+                                expenses -= account.data.withdrawals[idx];
+                            }
+                            else {
+                                const withdrawal = account.calculate_withdrawal(expenses, idx);
+                                account.data.withdrawals[idx] = withdrawal;
+                                expenses -= withdrawal;
+                            }
+                            expenses = Math.max(expenses, 0);
+                        }
+
+                        // Calculate conversions
+                        let taxable = TaxStrategy.fed_taxable2(idx);
+                        let conversion_available = 0;
+                        if (taxable < 0) {
+                            conversion_available = -taxable;
+                        }
+                        conversion_available /= 12;
+                        for (const [obj_idx, obj] of enumerate(WithdrawalStrategy.withdrawalOrder)) {
+                            const account = obj.account;
+                            if (account instanceof InvestmentAccount) {
+                                if (conversion_available <= 0) {
+                                    account.data.conversions[idx] = 0;
+                                }
+                                else {
+                                    const conversion = account.calculate_conversion(conversion_available, idx);
+                                    account.data.conversions[idx] = conversion;
+                                    conversion_available -= conversion;
+                                }
+                                if (account.data.conversions[idx] > 0.01) {
+                                    table_row.children[obj_idx + 2].innerHTML = `${USDollar.format(account.data.withdrawals[idx])} (<span class="text-success">${USDollar.format(account.data.conversions[idx])}</span>)`
+                                }
+                                else {
+                                    table_row.children[obj_idx + 2].innerText = USDollar.format(account.data.withdrawals[idx]);
+                                }
+                            } else {
+                                table_row.children[obj_idx + 2].innerText = USDollar.format(account.data.withdrawals[idx]);
+                            }
+                        }
+
+                        let taxes = TaxStrategy.tax(idx, taxable_income_source, social_security_source);
+                        taxes += TaxStrategy.tax(idx, long_term_capital_gains_source);
+                        taxes += TaxStrategy.tax(idx, adjusted_gross_income_source);
+
+                        // Update account values & ui
+                        for (const obj of WithdrawalStrategy.withdrawalOrder) {
+                            const account = obj.account;
+                            account.update_value(idx);
+                        }
+
+                        table_row.children[table_row.children.length - 4].innerText = USDollar.format(expenses);
+                        table_row.children[table_row.children.length - 2].innerText = USDollar.format(taxes);
+                        cumulative_taxes += taxes;
+                        table_row.children[table_row.children.length - 1].innerText = USDollar.format(cumulative_taxes);
+                        WithdrawalStrategy.data.withdrawalsFedTaxBracket[idx] = TaxStrategy.federal_marginal_bracket(idx);
+                        table_row.children[table_row.children.length - 3].innerText = `${WithdrawalStrategy.data.withdrawalsFedTaxBracket[idx]}%`;
+                    }
+                    else {
+                        // We aren't in retirement, so this account changing of values
+                        // does not affect other accounts.
+                        const account = WithdrawalStrategy.withdrawalOrder[start_idx].account;
+                        account.update_value(idx);
+                    }
+                }
+
+                WithdrawalStrategy.withdrawal_chart.update();
+                Dashboard.update_income();
+                Dashboard.update_values();
+            }
+        }
+    }
 
     class Configuration {
+        static global_id = 1;
+
         constructor(name) {
-            this.id = global_id++;
+            this.id = Configuration.global_id++;
             this.name = new str_property(name);
             this.enabled = new boolean_property(true);
         }
@@ -845,6 +1659,457 @@
         }
     }
 
+    class Tax extends EditableConfig {
+        static IncomeSourceProperty = class extends array_property {
+            constructor(value = []) {
+                super(value,
+                    (item) => item.toString(),
+                    (str)  => all_income_sources.find((income) => income.name.value == str)
+                );
+            }
+        }
+
+        constructor(name, ...income_sources) {
+            super(name);
+            this.income_sources = new Tax.IncomeSourceProperty(income_sources);
+
+            this.income_sources.subscribe((value) => {
+                this.__update_taxes();
+            });
+
+            this.enabled.subscribe((value) => {
+                this.__update_taxes();
+            });
+        }
+
+        serialize() {
+            const obj = super.serialize();
+
+            obj.income_sources = this.income_sources.value.map((source) => source.serialize());
+
+            return obj;
+        }
+
+        deserialize(obj) {
+            super.deserialize(obj);
+            this.income_sources.set_value(obj.income_sources.map((source_data) => all_income_sources.find((source) => source.name.value === source_data.name)));
+        }
+
+        __update_taxes() {
+            TaxStrategy.update_fica_tax();
+            TaxStrategy.update_tax();
+        }
+
+        get_template()
+        {
+            const template = super.get_template();
+            const body = template.getElementsByClassName("card-body")[0];
+            body.appendChild(this.generate_select_template(
+                "Sources",
+                {multiple: ""},
+                this.income_sources,
+                ...all_income_sources
+            ));
+
+            return template;
+        }
+
+        add() {
+            super.add();
+            const node = this.get_template();
+            taxes_node.insertBefore(node, add_tax_node);
+            taxes.push(this);
+
+            TaxStrategy.update_fica_tax();
+            TaxStrategy.update_tax();
+        }
+
+        delete() {
+            let node = document.getElementById(`Tax-${this.id}`);
+            if (node != null) {
+                node.remove();
+            }
+
+            const idx = taxes.findIndex((tax) => tax.id === this.id);
+            if (idx != -1) {
+                taxes.splice(idx, 1);
+            }
+
+            TaxStrategy.update_fica_tax();
+            TaxStrategy.update_tax();
+
+            super.delete();
+        }
+
+        calculate_tax(amount, year = 0) {
+            throw Error("Not Implemented")
+        }
+    }
+
+    class FlatTax extends Tax {
+        constructor(name, ...income_sources) {
+            super(name, ...income_sources);
+            this.rate = new float_property(0);
+        }
+
+        serialize() {
+            const obj = super.serialize();
+
+            obj.rate = this.rate.value;
+
+            return obj;
+        }
+
+        deserialize(obj) {
+            super.deserialize(obj);
+
+            this.rate.set_value(obj.rate);
+        }
+
+        config_name() {
+            return "Flat Tax";
+        }
+
+        get_template() {
+            const template = super.get_template();
+            const body = template.getElementsByClassName("card-body")[0];
+            body.appendChild(this.generate_input_template(
+                "Rate",
+                {step: "any", min: 0},
+                this.rate
+            ));
+
+            return template;
+        }
+
+        calculate_tax(amount, year = 0) {
+            return amount * (this.rate.value / 100);
+        }
+    }
+
+    class TaxBracket {
+        constructor(rate, min, max) {
+            this.rate = new float_property(rate);
+            this.min  = new int_property(min);
+            this.max  = new int_property(max);
+        }
+
+        serialize() {
+            return {
+                rate: this.rate.value,
+                min: this.min.value,
+                max: this.max.value
+            }
+        }
+
+        deserialize(obj) {
+            this.rate.set_value(obj.rate);
+            this.min.set_value(obj.min);
+            this.max.set_value(obj.max);
+        }
+    }
+
+    class TaxTable extends Tax {
+        constructor(name, ...income_sources) {
+            super(name, ...income_sources)
+            this.brackets = []
+        }
+
+        serialize() {
+            const obj = super.serialize();
+
+            obj.brackets = this.brackets.map((bracket) => bracket.serialize());
+
+            return obj;
+        }
+
+        deserialize(obj) {
+            super.deserialize(obj);
+
+            for (const bracket_data of obj.brackets)  {
+                const bracket = new TaxBracket(0, 0, 0);
+                bracket.deserialize(bracket_data);
+                this.add_bracket(bracket.rate.value, bracket.min.value, bracket.max.value);
+            }
+        }
+
+        config_name() {
+            return "Tax Table";
+        }
+
+        get_template() {
+            const template = super.get_template();
+            const body = template.getElementsByClassName("card-body")[0];
+            const content = parseHTML(`
+            <div>
+                <table class="table table-hover" id="TaxTable-${this.id}">
+                    <thead>
+                        <tr>
+                            <th scope="col">Rate</th>
+                            <th scope="col">Minimum</th>
+                            <th scope="col">Maximum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <button class="btn" id="TaxTable-AddRow-${this.id}"><i class="bi bi-plus-circle"></i> Add Row</button>
+            </div>
+            `);
+            const tbody_node = content.getElementsByTagName("tbody")[0];
+            for (const bracket of this.brackets) {
+                tbody_node.appendChild(this.__create_bracket_row(bracket));
+            }
+            const add_row_button = content.querySelector(`#TaxTable-AddRow-${this.id}`);
+            add_row_button.addEventListener("click", (event) => {
+                let rate = 0;
+                let min = 0;
+                let max = 0;
+                if (this.brackets.length > 0) {
+                    rate = this.brackets[this.brackets.length - 1].rate.value;
+                    min = this.brackets[this.brackets.length - 1].max.value + 1;
+                    max = min;
+                }
+                this.add_bracket(rate, min, max);
+            });
+            body.appendChild(content);
+
+            return template;
+        }
+
+        add_bracket(rate, min, max) {
+            this.brackets.push(new TaxBracket(rate, min, max));
+            const table = document.getElementById(`TaxTable-${this.id}`);
+            if (table != null) {
+                const tbody_node = table.getElementsByTagName("tbody")[0];
+                tbody_node.appendChild(this.__create_bracket_row(this.brackets[this.brackets.length - 1]));
+            }
+        }
+
+        __create_bracket_row(bracket) {
+            const row = document.createElement("tr");
+            const rate_td = document.createElement("td");
+            rate_td.appendChild(this.generate_input_template(
+                null,
+                {step: "any", min: 0},
+                bracket.rate
+            ));
+            const min_td = document.createElement("td");
+            min_td.appendChild(this.generate_input_template(
+                null,
+                {step: "any", min: 0},
+                bracket.min
+            ));
+            const max_td = document.createElement("td");
+            max_td.appendChild(this.generate_input_template(
+                null,
+                {step: "any", min: 0},
+                bracket.max
+            ));
+
+            row.append(rate_td, min_td, max_td);
+            return row;
+        }
+
+        calculate_tax(amount, year = 0) {
+            var tax = 0;
+            for (const bracket of this.brackets) {
+                amount -= bracket.min.value * Math.pow(1 + global_info.inflation.value / 100, year);
+                if (amount > 0) {
+                    tax += (bracket.rate.value/100) * Math.min(amount, bracket.max.value * Math.pow(1 + global_info.inflation.value / 100, year));
+                }
+                else {
+                    break;
+                }
+            }
+
+            return tax;
+        }
+
+        calculate_marginal(amount, year = 0) {
+            const inflation = Math.pow(1 + global_info.inflation.value / 100, year);
+            let rate = 0;
+            for (const bracket of this.brackets) {
+                amount -= bracket.min.value * inflation;
+                if (amount <= 0) {
+                    break;
+                }
+                rate = bracket.rate.value;
+            }
+
+            return rate;
+        }
+    }
+
+    class IncomeSource extends Configuration {
+        constructor(name) {
+            super(name)
+        }
+
+        toString() {
+            return this.name.value;
+        }
+    }
+
+    const fica_taxable_income_source = new IncomeSource("FICA Taxable");
+    const adjusted_gross_income_source = new IncomeSource("Adjusted Gross Income");
+    const taxable_income_source = new IncomeSource("Fed Taxable");
+    const long_term_capital_gains_source = new IncomeSource("Long-Term Capital Gains");
+    const social_security_source = new IncomeSource("Social Security");
+    const all_income_sources = [fica_taxable_income_source, adjusted_gross_income_source, taxable_income_source, long_term_capital_gains_source];
+
+    const federal_income_tax_individual = new TaxTable("Federal Income (Individual)", taxable_income_source);
+    federal_income_tax_individual.add_bracket(10, 0, 11600);
+    federal_income_tax_individual.add_bracket(12, 11601, 47150);
+    federal_income_tax_individual.add_bracket(22, 47151, 100525);
+    federal_income_tax_individual.add_bracket(24, 100526, 191950);
+    federal_income_tax_individual.add_bracket(32, 191951, 243725);
+    federal_income_tax_individual.add_bracket(35, 243726, 609350);
+    federal_income_tax_individual.add_bracket(37, 609351, 999999999999);
+    federal_income_tax_individual.enabled.set_value(false);
+    federal_income_tax_individual.add();
+
+    const federal_income_tax_married = new TaxTable("Federal Income (Married)", taxable_income_source);
+    federal_income_tax_married.add_bracket(10, 0, 23200);
+    federal_income_tax_married.add_bracket(12, 23201, 94300);
+    federal_income_tax_married.add_bracket(22, 94301, 201050);
+    federal_income_tax_married.add_bracket(24, 201051, 383900);
+    federal_income_tax_married.add_bracket(32, 383901, 487450);
+    federal_income_tax_married.add_bracket(35, 487451, 731200);
+    federal_income_tax_married.add_bracket(37, 731201, 999999999999);
+    federal_income_tax_married.add();
+
+    const fica_ss_tax = new FlatTax("FICA Social Security", fica_taxable_income_source);
+    fica_ss_tax.rate.set_value(6.2);
+    fica_ss_tax.add();
+
+    const fica_med_tax = new FlatTax("FICA Medicare", fica_taxable_income_source);
+    fica_med_tax.rate.set_value(1.45);
+    fica_med_tax.add();
+
+    class Dashboard {
+        static table_body = document.getElementById("Dashboard-Table").getElementsByTagName("tbody")[0];
+        static investment_by_type_chart = new Chart(document.getElementById("InvestmentByType"), {
+            type: 'bar',
+            data: {
+                labels: global_info.data.ages,
+                datasets: []
+            },
+            options: {
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: function(val, index) {
+                                return USDollar.format(val);
+                            }
+                        }
+                    }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ": " + USDollar.format(parseFloat(context.parsed.y));
+                            }
+                        }
+                    },
+                    colors: {
+                        forceOverride: true
+                    }
+                }
+            }
+        });
+
+        static {
+            Dashboard.update_ages();
+        }
+
+        static update_values() {
+            for (const [idx, row] of enumerate(Dashboard.table_body.children)) {
+                let value = 0;
+                for (const dataset of Dashboard.investment_by_type_chart.data.datasets) {
+                    value += dataset.data[idx];
+                }
+    
+                row.children[1].innerText = USDollar.format(value);
+            }
+
+            Dashboard.investment_by_type_chart.update();
+        }
+
+        static update_expenses() {
+            for (const [idx, row] of enumerate(Dashboard.table_body.children)) {
+                row.children[2].innerText = USDollar.format(TaxStrategy.after_tax(idx) / 12);
+                row.children[3].innerText = USDollar.format(global_info.data.expenses[idx] / 12);
+                row.children[4].innerText = USDollar.format(TaxStrategy.leftover_income(idx) / 12);
+            }
+
+            Dashboard.investment_by_type_chart.update();
+        }
+
+        static update_income() {
+            for (const [idx, row] of enumerate(Dashboard.table_body.children)) {
+                row.children[2].innerText = USDollar.format(TaxStrategy.after_tax(idx) / 12);
+                row.children[4].innerText = USDollar.format(TaxStrategy.leftover_income(idx) / 12);
+            }
+
+            Dashboard.investment_by_type_chart.update();
+        }
+
+        static update_ages() {
+            Dashboard.table_body.innerHTML = '';
+            for (const [idx, age] of enumerate(global_info.data.ages)) {
+                var row = document.createElement("tr");
+                var age_column = document.createElement("td");
+                var value_column = document.createElement("td");
+                var expenses_column = document.createElement("td");
+                var income_column = document.createElement("td");
+                var leftover_column = document.createElement("td");
+
+                age_column.innerText = age;
+
+                row.append(age_column, value_column, income_column, expenses_column, leftover_column);
+                Dashboard.table_body.append(row);
+            }
+            Dashboard.update_values();
+            Dashboard.update_expenses();
+        }
+
+        static remove_account(account) {
+            const idx = Dashboard.investment_by_type_chart.data.datasets.findIndex((dataset) => dataset.id === account.id);
+            if (idx != -1) {
+                Dashboard.investment_by_type_chart.data.datasets.splice(idx, 1);
+                Dashboard.update_values();
+            }
+        }
+
+        static add_account(account) {
+            Dashboard.investment_by_type_chart.data.datasets.push(
+                {id: account.id, label: account.name.value, data: account.data.values, borderWidth: 2, stack: ''}
+            );
+
+            account.name.subscribe((value) => {
+                for (const dataset of Dashboard.investment_by_type_chart.data.datasets) {
+                    dataset.label = value;
+                    Dashboard.investment_by_type_chart.update();
+                    break;
+                }
+            });
+
+            account.enabled.subscribe((value) => {
+                const idx = Dashboard.investment_by_type_chart.data.datasets.findIndex((dataset) => dataset.id === account.id);
+                if (idx != -1) {
+                    Dashboard.investment_by_type_chart.setDatasetVisibility(idx, value);
+                    Dashboard.investment_by_type_chart.update();
+                }
+            });
+        }
+    };
+
     class Account extends EditableConfig {
         constructor(name) {
             super(name)
@@ -866,9 +2131,12 @@
             accounts.push(this);
         }
 
-        update_values() {}
+        update_values() {
+            WithdrawalStrategy.update_values(this);
+        }
         update_contributions() {}
         update_ages() {}
+        update_value() {}
     }
 
     class Annuity extends Account {
@@ -999,13 +2267,6 @@
 
         update_ages() {
             this.data.withdrawals.length = global_info.data.ages.length;
-        }
-
-        update_values() {
-            for (let idx = 0; idx < global_info.data.ages.length; ++idx) {
-                this.data.withdrawals[idx] = WithdrawalStrategy.calculate_withdrawal(this, idx);
-            }
-            WithdrawalStrategy.after_update_values(this);
         }
 
         calculate_withdrawal(expense, idx) {
@@ -1269,12 +2530,7 @@
         }
 
         delete() {
-            const idx = investment_by_type_chart.data.datasets.findIndex((dataset) => dataset.id === this.id);
-            if (idx != -1) {
-                investment_by_type_chart.data.datasets.splice(idx, 1);
-                investment_by_type_chart.update();
-            }
-
+            Dashboard.remove_account(this);
             ContributionStrategy.remove_contribution(this);
             WithdrawalStrategy.remove_withdrawal(this);
             this.contribution.set_value(0);
@@ -1485,28 +2741,9 @@
                 }
             });
 
-            this.name.subscribe((value) => {
-                for (const dataset of investment_by_type_chart.data.datasets) {
-                    if (dataset.id === this.id) {
-                        dataset.label = value;
-                        investment_by_type_chart.update();
-                        break;
-                    }
-                }
-            });
-            investment_by_type_chart.data.datasets.push(
-                {id: this.id, label: this.name.value, data: this.data.values, borderWidth: 2, stack: ''}
-            );
-            this.enabled.subscribe((value) => {
-                const idx = investment_by_type_chart.data.datasets.findIndex((dataset) => dataset.id === this.id);
-                if (idx != -1) {
-                    investment_by_type_chart.setDatasetVisibility(idx, value);
-                    investment_by_type_chart.update();
-                }
-            });
-
             this.__table_body = document.getElementById(`Config-${this.id}-Table`).getElementsByTagName("tbody")[0];
             this.update_ages();
+            Dashboard.add_account(this);
             ContributionStrategy.add_contribution(this);
             WithdrawalStrategy.add_withdrawal(this);
         }
@@ -1562,36 +2799,24 @@
         }
 
         update_values() {
-            const now = new Date();
+            WithdrawalStrategy.update_values(this);
+        }
 
-            let rate = this.rate.value;
-            for (const [idx, age] of enumerate(global_info.data.ages)) {
-                if (age >= global_info.retirement_age.value) {
-                    rate = this.retirement_rate.value;
-                }
+        update_value(idx) {
+            const age = global_info.data.ages[idx];
+            const rate = age >= global_info.retirement_age.value ? this.retirement_rate.value
+                                                                 : this.rate.value;
 
-                const withdraw = WithdrawalStrategy.calculate_withdrawal(this, idx);
-                this.data.withdrawals[idx] = withdraw;
-
-                const conversion = WithdrawalStrategy.calculate_conversion(this, idx);
-                this.data.conversions[idx] = conversion;
-
-                if (idx === 0)  {
-                    this.data.values[idx] = monthlyCompoundInterest(this.balance.value, rate / 100, this.data.contributions[idx] / 12 - withdraw - conversion, 12 - now.getMonth());
-                }
-                else {
-                    this.data.values[idx] = monthlyCompoundInterest(this.data.values[idx - 1], rate / 100, this.data.contributions[idx] / 12 - withdraw - conversion);
-                }
+            if (idx === 0)  {
+                const now = new Date();
+                this.data.values[idx] = monthlyCompoundInterest(this.balance.value, rate / 100, this.data.contributions[idx] / 12 - this.data.withdrawals[idx] - this.data.conversions[idx], 12 - now.getMonth());
+            }
+            else {
+                this.data.values[idx] = monthlyCompoundInterest(this.data.values[idx - 1], rate / 100, this.data.contributions[idx] / 12 - this.data.withdrawals[idx] - this.data.conversions[idx]);
             }
 
             if (this.__table_body != null) {
-                for (const [idx, row] of enumerate(this.__table_body.children)) {
-                    row.children[2].innerText = USDollar.format(this.data.values[idx]);
-                }
-                this.chart.update();
-                investment_by_type_chart.update();
-                update_dashboard_table();
-                WithdrawalStrategy.after_update_values(this);
+                this.__table_body.children[idx].children[2].innerText = USDollar.format(this.data.values[idx]);
             }
         }
     }
@@ -1620,6 +2845,7 @@
                 const input = document.getElementById(`Roth Accounts-${this.id}`);
                 if (input != null) {
                     input.hidden = !value;
+                    input.value = '-1';
                 }
 
                 const previous_roth = this.roth_account;
@@ -1786,10 +3012,10 @@
         calculate_conversion(deduction, idx) {
             if (this.roth_converting.value && this.roth_account != null) {
                 if (idx === 0) {
-                    return Math.min(deduction, this.balance.value / 12 - WithdrawalStrategy.calculate_withdrawal(this, idx));
+                    return Math.min(deduction, this.balance.value / 12 - this.data.withdrawals[idx]);
                 }
 
-                return Math.min(deduction, this.data.values[idx - 1] / 12 - WithdrawalStrategy.calculate_withdrawal(this, idx));
+                return Math.min(deduction, this.data.values[idx - 1] / 12 - this.data.withdrawals[idx]);
             }
 
             return 0;
@@ -1811,6 +3037,13 @@
             }
             
             return amount;
+        }
+
+        update_values() {
+            super.update_values();
+            if (this.enabled.value && this.roth_converting.value && this.roth_account != null) {
+                this.roth_account.update_contributions();
+            }
         }
     }
 
@@ -2021,12 +3254,17 @@
             super(name);
 
             this.contribution.subscribe((value) => {
-                tax_sheet.update_401K_contributions();
+                TaxStrategy.update_401K_contributions();
             });
 
             this.enabled.subscribe((value) => {
-                tax_sheet.update_401K_contributions();
+                TaxStrategy.update_401K_contributions();
             });
+        }
+
+        add() {
+            super.add();
+            TaxStrategy.update_401K_contributions();
         }
 
         config_name() {
@@ -2034,7 +3272,7 @@
         }
     }
 
-    class Roth401K extends AfterTaxInvestmentAccount  {
+    class Roth extends AfterTaxInvestmentAccount {
         constructor(name) {
             super(name);
         }
@@ -2080,10 +3318,6 @@
                     row.children[1].innerText = USDollar.format(this.data.total_contributions[idx]);
                 }
             }
-        }
-
-        config_name() {
-            return "Roth 401K";
         }
 
         add() {
@@ -2110,12 +3344,17 @@
             super(name);
 
             this.contribution.subscribe((value) => {
-                tax_sheet.update_ira_contributions();
+                TaxStrategy.update_ira_contributions();
             });
 
             this.enabled.subscribe((value) => {
-                tax_sheet.update_ira_contributions();
+                TaxStrategy.update_ira_contributions();
             });
+        }
+
+        add() {
+            super.add();
+            TaxStrategy.update_ira_contributions();
         }
 
         config_name() {
@@ -2123,74 +3362,23 @@
         }
     }
 
-    class RothIRA extends AfterTaxInvestmentAccount  {
+    class Roth401K extends Roth  {
         constructor(name) {
             super(name);
         }
 
-        calculate_withdrawal(expense, idx) {
-            const age = global_info.data.ages[idx];
-            if (age < 59) {
-                const contributions_up_to_this_point = this.data.contributions.slice(0, idx).reduce((sum, rhs) => sum + rhs, 0);
-                const withdrawals_up_to_this_point   = this.data.withdrawals.slice(0, idx).reduce((sum, rhs) => sum + rhs, 0);
-                const principal_available = contributions_up_to_this_point - withdrawals_up_to_this_point;
-                return Math.min(expense, Math.max(0, principal_available));
-            }
-            
-            return super.calculate_withdrawal(expense, idx);
+        config_name() {
+            return "Roth 401K";
         }
+    }
 
-        update_contributions() {
-            super.update_contributions();
-
-            for (const [idx, age] of enumerate(global_info.data.ages)) {
-                let extra_contributions = 0;
-                for (const account of accounts) {
-                    if (account instanceof PreTaxInvestmentAccount) {
-                        if (account.roth_converting.value){
-                            if (account.roth_account != null) {
-                                if (account.roth_account.id === this.id) {
-                                    extra_contributions += account.data.conversions[idx];
-                                }
-                            }
-                        }
-                    }
-                }
-                if (extra_contributions != 0) {
-                    this.data.contributions[idx] += extra_contributions;
-                    for (let idx2 = idx; idx2 < this.data.contributions.length; ++idx2) {
-                        this.data.total_contributions[idx2] += extra_contributions;
-                    }
-                }
-            }
-
-            if (this.__table_body != null) {
-                for (const [idx, row] of enumerate(this.__table_body.children)) {
-                    row.children[1].innerText = USDollar.format(this.data.total_contributions[idx]);
-                }
-            }
+    class RothIRA extends Roth  {
+        constructor(name) {
+            super(name);
         }
 
         config_name() {
             return "Roth IRA";
-        }
-
-        add() {
-            super.add();
-            for (const account of accounts) {
-                if (account instanceof PreTaxInvestmentAccount) {
-                    account.update_roth_accounts();
-                }
-            }
-        }
-
-        delete() {
-            super.delete();
-            for (const account of accounts) {
-                if (account instanceof PreTaxInvestmentAccount) {
-                    account.update_roth_accounts();
-                }
-            }
         }
     }
 
@@ -2199,12 +3387,17 @@
             super(name);
 
             this.contribution.subscribe((value) => {
-                tax_sheet.update_hsa();
+                TaxStrategy.update_hsa();
             });
 
             this.enabled.subscribe((value) => {
-                tax_sheet.update_hsa();
+                TaxStrategy.update_hsa();
             });
+        }
+
+        add() {
+            super.add();
+            TaxStrategy.update_hsa();
         }
 
         config_name() {
@@ -2225,873 +3418,6 @@
         }
     }
 
-    class ContributionStrategy {
-        static Contribution = class {
-            constructor(account, priority) {
-                this.account = account;
-                this.priority = priority;
-                this.node = null;
-            }
-
-            serialize() {
-                return this.account.id;
-            }
-        };
-
-        static contributions = document.getElementById("nav-contributions");
-        static contribution_expenses = document.getElementById("Contribution-Sheet-Expenses");
-        static contribution_leftover = document.getElementById("Contribution-Sheet-Leftover");
-        static priority = {
-            HSA: 1,
-            TradIRA: 2,
-            Trad401K: 3
-        };
-        static contributionOrder = [];
-
-
-        static leftover_income() {
-            return tax_sheet.after_tax() - global_info.expenses.value;
-        }
-
-        static update_expenses() {
-            ContributionStrategy.contribution_expenses.innerText = USDollar.format(global_info.expenses.value);
-            ContributionStrategy.update_leftover();
-        }
-
-        static update_leftover() {
-            ContributionStrategy.contribution_leftover.innerText = USDollar.format(ContributionStrategy.leftover_income());
-            ContributionStrategy.__update_contributions(0);
-        }
-
-        static __update_contributions(idx, leftover = null) {
-            if (idx >= ContributionStrategy.contributionOrder.length) {
-                return;
-            }
-
-            const obj = ContributionStrategy.contributionOrder[idx];
-            if (obj.account instanceof AfterTaxInvestmentAccount) {
-                if (leftover === null) {
-                    leftover = ContributionStrategy.leftover_income() / 12;
-                    for (let idx2 = 0; idx2 < idx; ++idx2) {
-                        const obj2 = ContributionStrategy.contributionOrder[idx2];
-                        if (obj2.account instanceof AfterTaxInvestmentAccount) {
-                            leftover -= obj2.account.contribution.value;
-                        }
-                    }
-                    leftover = Math.max(0, leftover);
-                }
-                obj.account.available.set_value(leftover);
-                if (obj.account.enabled.value) {
-                    leftover -= obj.account.contribution.value;
-                    leftover = Math.max(0, leftover);
-                }
-            }
-
-            ContributionStrategy.__update_contributions(idx + 1, leftover);
-        }
-
-        static after_update_contributions(account) {
-            const idx = ContributionStrategy.contributionOrder.findIndex((obj) => obj.account.id === account.id);
-            if (idx != -1) {
-                ContributionStrategy.__update_contributions(idx + 1);
-            }
-        }
-
-        static update_contributions(account) {
-            const idx = ContributionStrategy.contributionOrder.findIndex((obj) => obj.account.id === account.id);
-            if (idx != -1) {
-                ContributionStrategy.__update_contributions(idx);
-            }
-        }
-
-        static shift_contribution(account, dir) {
-            const idx = ContributionStrategy.contributionOrder.findIndex((obj) => obj.account.id === account.id);
-            if (idx != -1) {
-                var move = idx + dir;
-                if (move >= 0 && move < ContributionStrategy.contributionOrder.length) {
-                    var floor = ContributionStrategy.contributionOrder.findIndex((obj) => obj.priority == null);
-                    if (floor != -1) {
-                        floor -= 1;
-                    }
-                    if (move > floor) {
-                        const obj = ContributionStrategy.contributionOrder[idx];
-                        ContributionStrategy.contributionOrder.splice(idx, 1);
-                        ContributionStrategy.contributionOrder.splice(move, 0, obj);
-                        if (move === (ContributionStrategy.contributionOrder.length - 1)) {
-                            obj.node = ContributionStrategy.contributions.appendChild(obj.node);
-                        }
-                        else {
-                            obj.node = ContributionStrategy.contributions.insertBefore(obj.node, ContributionStrategy.contributionOrder[move + 1].node);
-                        }
-
-                        if (dir > 0) {
-                            ContributionStrategy.__update_contributions(idx);
-                        }
-                        else {
-                            ContributionStrategy.__update_contributions(move);
-                        }
-                    }
-                }
-            }
-        }
-
-        static add_contribution(account) {
-            const node = account.get_contribution_template();
-            const myPriority = ContributionStrategy.priority[account.constructor.name] || null;
-
-            var foundChild = null;
-            var idx = ContributionStrategy.contributionOrder.length;
-            if (myPriority != null) {
-                for (idx = 0; idx < ContributionStrategy.contributionOrder.length; ++idx) {
-                    const obj = ContributionStrategy.contributionOrder[idx];
-                    if (obj.priority === null) {
-                        break;
-                    }
-
-                    if (obj.priority > myPriority) {
-                        break;
-                    }
-                }
-            }
-
-            const myObj = new ContributionStrategy.Contribution(account, myPriority);
-            var otherNode = null;
-            if (idx != ContributionStrategy.contributionOrder.length) {
-                otherNode = ContributionStrategy.contributionOrder[idx].node;
-            }
-            myObj.node = ContributionStrategy.contributions.insertBefore(node, otherNode);
-            ContributionStrategy.contributionOrder.splice(idx, 0, myObj);
-
-            ContributionStrategy.__update_contributions(idx);
-        }
-
-        static remove_contribution(account) {
-            const idx = ContributionStrategy.contributionOrder.findIndex((obj) => obj.account.id === account.id);
-            if (idx != -1) {
-                const obj = ContributionStrategy.contributionOrder[idx];
-                obj.node.remove();
-                ContributionStrategy.contributionOrder.splice(idx, 1);
-                account.contribution.set_value(0);
-                ContributionStrategy.__update_contributions(idx);
-            }
-        }
-    }
-
-    class WithdrawalStrategy {
-        static Withdrawal = class {
-            constructor(account, priority) {
-                this.account = account;
-                this.priority = priority;
-                this.node = null;
-                this.name_sub = null;
-                this.header = null;
-            }
-
-            serialize() {
-                return this.account.id;
-            }
-        }
-
-        static withdrawals = document.getElementById("Withdrawals");
-        static withdrawal_canvas = document.getElementById("WithdrawalByType"); 
-        static withdrawal_chart = null;
-        static withdrawal_table = document.getElementById("Withdrawal-Table");
-        static withdrawal_table_body = WithdrawalStrategy.withdrawal_table.getElementsByTagName("tbody")[0];
-        static withdrawal_table_head = WithdrawalStrategy.withdrawal_table.getElementsByTagName("thead")[0];
-        static withdrawal_table_header_row = WithdrawalStrategy.withdrawal_table_head.getElementsByTagName("tr")[0];
-        static withdrawalOrder = [];
-        static priority = {
-            SocialSecurity: 1,
-            Annuity: 2
-        };
-
-        static {
-            WithdrawalStrategy.update_ages();
-        }
-
-        static update_ages() {
-            const current_age = global_info.age.value;
-            const retirement_age = global_info.retirement_age.value;
-            const years_between = Math.max(0, retirement_age - current_age);
-
-            WithdrawalStrategy.withdrawal_table_body.innerHTML = '';
-
-            for (let idx = years_between; idx <= (global_info.life_expectancy.value - current_age); ++idx) {
-                const age = global_info.data.ages[idx];
-
-                const row = document.createElement("tr");
-                const age_column = document.createElement("td");
-                const expenses_column = document.createElement("td");
-                const amount_owed_column = document.createElement("td");
-                const taxes_column = document.createElement("td");
-                const cumulative_taxes_column = document.createElement("td");
-
-                age_column.innerText = age;
-                expenses_column.innerText = USDollar.format(0);
-                amount_owed_column.innerText = USDollar.format(0);
-                taxes_column.innerText = USDollar.format(0);
-                cumulative_taxes_column.innerText = USDollar.format(0);
-
-                row.append(age_column, expenses_column);
-
-                for (const obj of WithdrawalStrategy.withdrawalOrder) {
-                    const data_column = document.createElement("td");
-                    data_column.innerText = USDollar.format(0);
-                    row.appendChild(data_column);
-                }
-
-                row.append(amount_owed_column, taxes_column, cumulative_taxes_column);
-                WithdrawalStrategy.withdrawal_table_body.appendChild(row);
-            }
-
-            if (WithdrawalStrategy.withdrawal_chart === null) {
-                WithdrawalStrategy.withdrawal_chart = new Chart(WithdrawalStrategy.withdrawal_canvas, {
-                    type: 'bar',
-                    data: {
-                        labels: global_info.data.ages,
-                        datasets: []
-                    },
-                    options: {
-                        scales: {
-                            x: {
-                                min: global_info.retirement_age.value
-                            },
-                            y: {
-                                ticks: {
-                                    callback: function(val, index) {
-                                        return USDollar.format(val);
-                                    }
-                                }
-                            }
-                        },
-                        interaction: {
-                            mode: 'index',
-                            intersect: false
-                        },
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return context.dataset.label + ": " + USDollar.format(parseFloat(context.parsed.y));
-                                    }
-                                }
-                            },
-                            colors: {
-                                forceOverride: true
-                            }
-                        }
-                    }
-                });
-            }
-            else {
-                WithdrawalStrategy.withdrawal_chart.options.scales.x.min = global_info.retirement_age.value;
-                WithdrawalStrategy.withdrawal_chart.update();
-            }
-
-            WithdrawalStrategy.update_expenses();
-        }
-
-        static update_expenses() {
-            const current_age = global_info.age.value;
-            const retirement_age = global_info.retirement_age.value;
-            var years_between = Math.max(0, retirement_age - current_age);
-
-            for (const row of WithdrawalStrategy.withdrawal_table_body.children) {
-                const expenses = global_info.data.expenses[years_between] / 12;
-                row.children[1].innerText = USDollar.format(expenses);
-                ++years_between;
-            }
-
-            if (WithdrawalStrategy.withdrawalOrder.length > 0) {
-                WithdrawalStrategy.withdrawalOrder[0].account.update_values();
-            }
-        }
-
-        static calculate_withdrawal(account, idx) {
-            if (!account.enabled.value) {
-                return 0;
-            }
-
-            const age = global_info.data.ages[idx];
-            if (age < global_info.retirement_age.value) {
-                return 0;
-            }
-            
-            let expense = global_info.data.expenses[idx] / 12;
-            for (const obj of WithdrawalStrategy.withdrawalOrder) {
-                if (obj.account.id === account.id) {
-                    return Math.max(0, obj.account.calculate_withdrawal(expense, idx));
-                }
-                expense -= obj.account.data.withdrawals[idx];
-                expense = Math.max(expense, 0);
-            }
-
-            return 0;
-        }
-
-        static calculate_conversion(account, idx) {
-            if (!account.enabled.value) {
-                return 0;
-            }
-
-            const age = global_info.data.ages[idx];
-            if (age < global_info.retirement_age.value) {
-                return 0;
-            }
-
-            let pre_tax_withdraws = 0;
-            let ss_withdraws = 0;
-            let expenses = global_info.data.expenses[idx] / 12;
-            for (const obj of WithdrawalStrategy.withdrawalOrder) {
-                const withdrawal = obj.account.calculate_withdrawal(expenses, idx);
-                if (obj.account instanceof PreTaxInvestmentAccount) {
-                    pre_tax_withdraws += withdrawal;
-                }
-                else
-                if (obj.account instanceof SocialSecurity) {
-                    ss_withdraws += withdrawal;
-                }
-                else if (obj.account instanceof Annuity) {
-                    pre_tax_withdraws += withdrawal;
-                }
-                expenses -= withdrawal;
-                expenses = Math.max(0, expenses);
-            }
-            const deduction = (tax_sheet.fed_deduction.value * Math.pow(1 + global_info.inflation.value / 100, idx)) / 12;
-            pre_tax_withdraws -= deduction - ss_withdraws * 0.85;
-            if (pre_tax_withdraws < 0) {
-                let conversion_available = -pre_tax_withdraws;
-                for (const obj of WithdrawalStrategy.withdrawalOrder) {
-                    if (obj.account instanceof InvestmentAccount) {
-                        if (obj.account.id === account.id) {
-                            return obj.account.calculate_conversion(conversion_available, idx);
-                        }
-                        
-                        conversion_available -= obj.account.data.conversions[idx];
-                        if (conversion_available <= 0) {
-                            break;
-                        }
-                    }
-                }
-            }
-
-            return 0;
-        }
-
-        static shift_withdrawal(account, dir) {
-            if (dir != 0) {
-                const idx = WithdrawalStrategy.withdrawalOrder.findIndex((obj) => obj.account.id === account.id);
-                if (idx != -1) {
-                    var move = idx + dir;
-                    if (move >= 0 && move < WithdrawalStrategy.withdrawalOrder.length) {
-                        var floor = WithdrawalStrategy.withdrawalOrder.findIndex((obj) => obj.priority == null);
-                        if (floor != -1) {
-                            floor -= 1;
-                        }
-                        if (move > floor) {
-                            const obj = WithdrawalStrategy.withdrawalOrder[idx];
-                            WithdrawalStrategy.withdrawalOrder.splice(idx, 1);
-                            WithdrawalStrategy.withdrawalOrder.splice(move, 0, obj);
-                            if (move === (WithdrawalStrategy.withdrawalOrder.length - 1)) {
-                                obj.node = WithdrawalStrategy.withdrawals.appendChild(obj.node);
-                                obj.header = WithdrawalStrategy.withdrawal_table_header_row.appendChild(obj.header);
-                            }
-                            else {
-                                obj.node = WithdrawalStrategy.withdrawals.insertBefore(obj.node, WithdrawalStrategy.withdrawalOrder[move + 1].node);
-                                obj.header = WithdrawalStrategy.withdrawal_table_header_row.insertBefore(obj.header, WithdrawalStrategy.withdrawalOrder[move + 1].header);
-                            }
-
-                            if (dir > 0) {
-                                WithdrawalStrategy.withdrawalOrder[idx].account.update_values();
-                            }
-                            else {
-                                account.update_values();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        static add_withdrawal(account) {
-            const node = account.get_withdrawal_template();
-            const myPriority = WithdrawalStrategy.priority[account.constructor.name] || null;
-
-            var foundChild = null;
-            var idx = WithdrawalStrategy.withdrawalOrder.length;
-            if (myPriority != null) {
-                for (idx = 0; idx < WithdrawalStrategy.withdrawalOrder.length; ++idx) {
-                    const obj = WithdrawalStrategy.withdrawalOrder[idx];
-                    if (obj.priority === null) {
-                        break;
-                    }
-
-                    if (obj.priority > myPriority) {
-                        break;
-                    }
-                }
-            }
-
-            const myObj = new WithdrawalStrategy.Withdrawal(account, myPriority);
-            var otherNode = null;
-            if (idx != WithdrawalStrategy.withdrawalOrder.length) {
-                otherNode = WithdrawalStrategy.withdrawalOrder[idx].node;
-            }
-            myObj.node = WithdrawalStrategy.withdrawals.insertBefore(node, otherNode);
-            WithdrawalStrategy.withdrawalOrder.splice(idx, 0, myObj);
-
-            const header = document.createElement("th");
-            header.innerText = account.name.value;
-            myObj.name_sub = account.name.subscribe((value) => {
-                header.innerText = value;
-                for (const dataset of WithdrawalStrategy.withdrawal_chart.data.datasets) {
-                    if (dataset.id === account.id) {
-                        dataset.label = value;
-                        WithdrawalStrategy.withdrawal_chart.update();
-                        break;
-                    }
-                }
-            });
-            myObj.header = header;
-
-            WithdrawalStrategy.withdrawal_table_header_row.insertBefore(header, WithdrawalStrategy.withdrawal_table_header_row.children[idx + 2]);
-            for (const row of WithdrawalStrategy.withdrawal_table_body.getElementsByTagName("tr")) {
-                const columns = row.getElementsByTagName("td");
-                const data = document.createElement("td");
-                data.innerText = USDollar.format(0);
-                row.insertBefore(data, columns[idx + 2]);
-            }
-            account.update_values();
-            WithdrawalStrategy.withdrawal_chart.data.datasets.push(
-                {id: account.id, label: account.name.value, data: account.data.withdrawals, borderWidth: 2, stack: ''}
-            );
-            WithdrawalStrategy.withdrawal_chart.update();
-        }
-
-        static remove_withdrawal(account) {
-            const idx = WithdrawalStrategy.withdrawalOrder.findIndex((obj) => obj.account.id === account.id);
-            if (idx != -1) {
-                const obj = WithdrawalStrategy.withdrawalOrder[idx];
-                obj.node.remove();
-                account.name.unsubscribe(obj.name_sub);
-                WithdrawalStrategy.withdrawal_table_header_row.removeChild(WithdrawalStrategy.withdrawal_table_header_row.children[idx + 2]);
-                for (const row of WithdrawalStrategy.withdrawal_table_body.getElementsByTagName("tr")) {
-                    row.getElementsByTagName("td")[idx + 2].remove();
-                }
-                WithdrawalStrategy.withdrawalOrder.splice(idx, 1);
-                if (idx < WithdrawalStrategy.withdrawalOrder.length) {
-                    WithdrawalStrategy.withdrawalOrder[idx].account.update_values();
-                }
-
-                const chart_idx = WithdrawalStrategy.withdrawal_chart.data.datasets.findIndex((dataset) => dataset.id === obj.account.id);
-                if (chart_idx != -1) {
-                    WithdrawalStrategy.withdrawal_chart.data.datasets.splice(chart_idx, 1);
-                    WithdrawalStrategy.withdrawal_chart.update();
-                }
-            }
-        }
-
-        static __update_withdrawal_ui(account) {
-            const idx = WithdrawalStrategy.withdrawalOrder.findIndex((obj) => obj.account.id === account.id);
-            if (idx != -1) {
-                const current_age = global_info.age.value;
-                const retirement_age = global_info.retirement_age.value;
-                let years_between = Math.max(0, retirement_age - current_age);
-                for (const row of WithdrawalStrategy.withdrawal_table_body.children) {
-                    const withdrawal = account.data.withdrawals[years_between];
-                    if (account instanceof InvestmentAccount) {
-                        if (account.data.conversions[years_between] > 0.01) {
-                            row.children[idx + 2].innerHTML = `${USDollar.format(withdrawal)} (<span class="text-success">${USDollar.format(account.data.conversions[years_between])}</span>)`
-                        }
-                        else {
-                            row.children[idx + 2].innerText = USDollar.format(withdrawal);
-                        }
-                    }
-                    else {
-                        row.children[idx + 2].innerText = USDollar.format(withdrawal);
-                    }
-
-                    ++years_between;
-                }
-            }
-        }
-
-        static after_update_values(account) {
-            var start = false;
-            for (const obj of WithdrawalStrategy.withdrawalOrder) {
-                if (start) {
-                    obj.account.update_values();
-                    return;
-                }
-
-                if (obj.account.id === account.id) {
-                    WithdrawalStrategy.__update_withdrawal_ui(account);
-                    start = true;
-                }
-            }
-
-            if (start) {
-                const current_age = global_info.age.value;
-                const retirement_age = global_info.retirement_age.value;
-                let year = Math.max(current_age, retirement_age) - current_age;
-                let years_between = Math.max(0, retirement_age - current_age);
-                let cumulative_taxes = 0;
-                for (const row of WithdrawalStrategy.withdrawal_table_body.children) {
-                    var pre_tax_withdraws = 0;
-                    let ss_withdraws = 0;
-                    var expenses = global_info.data.expenses[years_between] / 12;
-                    for (const [idx, obj] of enumerate(WithdrawalStrategy.withdrawalOrder)) {
-                        const withdrawal = obj.account.data.withdrawals[years_between];
-                        if (obj.account instanceof PreTaxInvestmentAccount) {
-                            pre_tax_withdraws += withdrawal;
-                        }
-                        else
-                        if (obj.account instanceof SocialSecurity) {
-                            ss_withdraws += withdrawal;
-                        }
-                        else if (obj.account instanceof Annuity) {
-                            pre_tax_withdraws += withdrawal;
-                        }
-                        expenses -= withdrawal;
-                        expenses = Math.max(0, expenses);
-                    }
-                    row.children[row.children.length - 3].innerText = USDollar.format(Math.max(0, expenses));
-                    pre_tax_withdraws += ss_withdraws * 0.85;
-                    pre_tax_withdraws *= 12;
-                    pre_tax_withdraws = Math.max(0, pre_tax_withdraws - tax_sheet.fed_deduction.value * Math.pow(1 + global_info.inflation.value / 100, year));
-
-                    let taxes_paid = taxes.filter((tax) => tax.enabled.value && (tax.income_sources.value.includes(adjusted_gross_income_source) || tax.income_sources.value.includes(taxable_income_source)))
-                                        .map((tax) => tax.do_calculate_tax(pre_tax_withdraws, year))
-                                        .reduce((sum, rhs) => sum + rhs, 0);
-                    row.children[row.children.length - 2].innerText = USDollar_Rounded.format(taxes_paid);
-                    cumulative_taxes += taxes_paid;
-                    row.children[row.children.length - 1].innerText = USDollar_Rounded.format(cumulative_taxes);
-                    
-                    ++years_between;
-                    ++year;
-                }
-
-                WithdrawalStrategy.withdrawal_chart.update();
-            }
-        }
-    }
-
-    class IncomeSource extends Configuration {
-        constructor(name) {
-            super(name)
-        }
-
-        toString() {
-            return this.name.value;
-        }
-    }
-
-    const fica_taxable_income_source = new IncomeSource("FICA Taxable");
-    const adjusted_gross_income_source = new IncomeSource("Adjusted Gross Income");
-    const taxable_income_source = new IncomeSource("Taxable");
-    const after_tax_income_source = new IncomeSource("After Tax Income")
-    const taxable_income_sources = [fica_taxable_income_source, adjusted_gross_income_source, taxable_income_source];
-    const all_income_sources = [fica_taxable_income_source, adjusted_gross_income_source, taxable_income_source, after_tax_income_source];
-
-    function lookup_income_source(income_source) {
-        switch (income_source.id) {
-            case fica_taxable_income_source.id:
-                return tax_sheet.fica_taxable();
-            case adjusted_gross_income_source.id:
-                return tax_sheet.adjusted_gross_income();
-            case taxable_income_source.id:
-                return tax_sheet.fed_taxable();
-            case after_tax_income_source.id:
-                return tax_sheet.after_tax();
-        }
-
-        return null;
-    }
-
-    class Tax extends EditableConfig {
-        static IncomeSourceProperty = class extends array_property {
-            constructor(value = []) {
-                super(value,
-                    (item) => item.toString(),
-                    (str)  => taxable_income_sources.find((income) => income.name.value == str)
-                );
-            }
-        }
-
-        constructor(name, ...income_sources) {
-            super(name);
-            this.income_sources = new Tax.IncomeSourceProperty(income_sources);
-
-            this.income_sources.subscribe((value) => {
-                this.__update_taxes();
-            });
-
-            this.enabled.subscribe((value) => {
-                this.__update_taxes();
-            });
-        }
-
-        serialize() {
-            const obj = super.serialize();
-
-            obj.income_sources = this.income_sources.value.map((source) => source.serialize());
-
-            return obj;
-        }
-
-        deserialize(obj) {
-            super.deserialize(obj);
-            this.income_sources.set_value(obj.income_sources.map((source_data) => all_income_sources.find((source) => source.name.value === source_data.name)));
-        }
-
-        __update_taxes() {
-            tax_sheet.update_fica_tax();
-            tax_sheet.update_tax();
-        }
-
-        get_template()
-        {
-            const template = super.get_template();
-            const body = template.getElementsByClassName("card-body")[0];
-            body.appendChild(this.generate_select_template(
-                "Sources",
-                {multiple: ""},
-                this.income_sources,
-                ...taxable_income_sources
-            ));
-
-            return template;
-        }
-
-        add() {
-            super.add();
-            const node = this.get_template();
-            taxes_node.insertBefore(node, add_tax_node);
-            taxes.push(this);
-
-            tax_sheet.update_fica_tax();
-            tax_sheet.update_tax();
-        }
-
-        delete() {
-            let node = document.getElementById(`Tax-${this.id}`);
-            if (node != null) {
-                node.remove();
-            }
-
-            const idx = taxes.findIndex((tax) => tax.id === this.id);
-            if (idx != -1) {
-                taxes.splice(idx, 1);
-            }
-
-            tax_sheet.update_fica_tax();
-            tax_sheet.update_tax();
-
-            super.delete();
-        }
-
-        calculate_tax() {
-            if (!this.enabled.value) {
-                return 0;
-            }
-            const amount = this.income_sources.value.map((source) => lookup_income_source(source))
-                                                    .reduce((sum, rhs) => sum + rhs, 0);
-            return this.do_calculate_tax(amount);
-        }
-
-        do_calculate_tax(amount, year = 0) {
-            return null;
-        }
-    }
-
-    class FlatTax extends Tax {
-        constructor(name, ...income_sources) {
-            super(name, ...income_sources);
-            this.rate = new float_property(0);
-        }
-
-        serialize() {
-            const obj = super.serialize();
-
-            obj.rate = this.rate.value;
-
-            return obj;
-        }
-
-        deserialize(obj) {
-            super.deserialize(obj);
-
-            this.rate.set_value(obj.rate);
-        }
-
-        config_name() {
-            return "Flat Tax";
-        }
-
-        get_template() {
-            const template = super.get_template();
-            const body = template.getElementsByClassName("card-body")[0];
-            body.appendChild(this.generate_input_template(
-                "Rate",
-                {step: "any", min: 0},
-                this.rate
-            ));
-
-            return template;
-        }
-
-        do_calculate_tax(amount, year = 0) {
-            return amount * (this.rate.value / 100);
-        }
-    }
-
-    class TaxBracket {
-        constructor(rate, min, max) {
-            this.rate = new float_property(rate);
-            this.min  = new int_property(min);
-            this.max  = new int_property(max);
-        }
-
-        serialize() {
-            return {
-                rate: this.rate.value,
-                min: this.min.value,
-                max: this.max.value
-            }
-        }
-
-        deserialize(obj) {
-            this.rate.set_value(obj.rate);
-            this.min.set_value(obj.min);
-            this.max.set_value(obj.max);
-        }
-    }
-
-    class TaxTable extends Tax {
-        constructor(name, ...income_sources) {
-            super(name, ...income_sources)
-            this.brackets = []
-        }
-
-        serialize() {
-            const obj = super.serialize();
-
-            obj.brackets = this.brackets.map((bracket) => bracket.serialize());
-
-            return obj;
-        }
-
-        deserialize(obj) {
-            super.deserialize(obj);
-
-            for (const bracket of obj.brackets.map((data) => {const b = new TaxBracket(0, 0, 0); b.deserialize(data); return b;}))  {
-                this.add_bracket(bracket.rate.value, bracket.min.value, bracket.max.value);
-            }
-        }
-
-        config_name() {
-            return "Tax Table";
-        }
-
-        get_template() {
-            const template = super.get_template();
-            const body = template.getElementsByClassName("card-body")[0];
-            const content = parseHTML(`
-            <div>
-                <table class="table table-hover" id="TaxTable-${this.id}">
-                    <thead>
-                        <tr>
-                            <th scope="col">Rate</th>
-                            <th scope="col">Minimum</th>
-                            <th scope="col">Maximum</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-                <button class="btn" id="TaxTable-AddRow-${this.id}"><i class="bi bi-plus-circle"></i> Add Row</button>
-            </div>
-            `);
-            const tbody_node = content.getElementsByTagName("tbody")[0];
-            for (const bracket of this.brackets) {
-                tbody_node.appendChild(this.__create_bracket_row(bracket));
-            }
-            const add_row_button = content.querySelector(`#TaxTable-AddRow-${this.id}`);
-            add_row_button.addEventListener("click", (event) => {
-                let rate = 0;
-                let min = 0;
-                let max = 0;
-                if (this.brackets.length > 0) {
-                    rate = this.brackets[this.brackets.length - 1].rate.value;
-                    min = this.brackets[this.brackets.length - 1].max.value + 1;
-                    max = min;
-                }
-                this.add_bracket(rate, min, max);
-            });
-            body.appendChild(content);
-
-            return template;
-        }
-
-        add_bracket(rate, min, max) {
-            this.brackets.push(new TaxBracket(rate, min, max));
-            const table = document.getElementById(`TaxTable-${this.id}`);
-            if (table != null) {
-                const tbody_node = table.getElementsByTagName("tbody")[0];
-                tbody_node.appendChild(this.__create_bracket_row(this.brackets[this.brackets.length - 1]));
-            }
-        }
-
-        __create_bracket_row(bracket) {
-            const row = document.createElement("tr");
-            const rate_td = document.createElement("td");
-            rate_td.appendChild(this.generate_input_template(
-                null,
-                {step: "any", min: 0},
-                bracket.rate
-            ));
-            const min_td = document.createElement("td");
-            min_td.appendChild(this.generate_input_template(
-                null,
-                {step: "any", min: 0},
-                bracket.min
-            ));
-            const max_td = document.createElement("td");
-            max_td.appendChild(this.generate_input_template(
-                null,
-                {step: "any", min: 0},
-                bracket.max
-            ));
-
-            row.append(rate_td, min_td, max_td);
-            return row;
-        }
-
-        do_calculate_tax(amount, year = 0) {
-            var tax = 0;
-            for (const bracket of this.brackets) {
-                amount -= bracket.min.value * Math.pow(1 + global_info.inflation.value / 100, year);
-                if (amount > 0) {
-                    tax += (bracket.rate.value/100) * Math.min(amount, bracket.max.value * Math.pow(1 + global_info.inflation.value / 100, year));
-                }
-                else {
-                    break;
-                }
-            }
-
-            return tax;
-        }
-    }
-
-    const accounts_node = document.getElementById("accounts");
-    const add_account_node = document.getElementById("add_account");
-
-    const taxes_node = document.getElementById("taxes");
-    const add_tax_node = document.getElementById("add_tax");
-
-    let accounts = [];
-    let taxes = [];
-
     function add_account_button(account_type) {
         const account = new account_type('');
         account.name.set_value(`${account.config_name()} ${account.id}`);
@@ -3104,202 +3430,13 @@
         tax.add();
     }
 
-    var investment_by_type_chart = new Chart(document.getElementById("InvestmentByType"), {
-        type: 'bar',
-        data: {
-            labels: global_info.data.ages,
-            datasets: []
-        },
-        options: {
-            scales: {
-                y: {
-                    ticks: {
-                        callback: function(val, index) {
-                            return USDollar.format(val);
-                        }
-                    }
-                }
-            },
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.dataset.label + ": " + USDollar.format(parseFloat(context.parsed.y));
-                        }
-                    }
-                },
-                colors: {
-                    forceOverride: true
-                }
-            }
-        }
-    });
-
-    class TaxSheet {
-        static element_w2 = document.getElementById("Tax-Sheet-W2");
-        static element_section125 = document.getElementById("Tax-Sheet-Section125");
-        static element_hsa = document.getElementById("Tax-Sheet-HSA");
-        static element_fica = document.getElementById("Tax-Sheet-FICA");
-        static element_fica_tax = document.getElementById("Tax-Sheet-FICA-Tax");
-        static element_ira = document.getElementById("Tax-Sheet-IRA");
-        static element_401k = document.getElementById("Tax-Sheet-401K");
-        static element_agi = document.getElementById("Tax-Sheet-AGI");
-        static element_deductions = document.getElementById("Tax-Sheet-Deductions");
-        static element_taxable = document.getElementById("Tax-Sheet-Taxable");
-        static element_tax = document.getElementById("Tax-Sheet-Tax");
-        static element_after_tax = document.getElementById("Tax-Sheet-After-Tax");
-        static element_after_tax2 = document.getElementById("Contribution-Sheet-After-Tax");
-        
-        constructor() {
-            this.section125 = new int_property(0);
-            this.fed_deduction = new int_property(29200);
-            TaxSheet.element_section125.appendChild(
-                generate_input_template(
-                    null,
-                    {id: "section125", min: 0, step: "any"},
-                    this.section125
-                )
-            );
-
-            TaxSheet.element_deductions.appendChild(
-                generate_input_template(
-                    null,
-                    {id: "fed_deduction", min: 0, step: "any"},
-                    this.fed_deduction
-                )
-            );
-
-            this.section125.subscribe((value) => {
-                this.update_fica_taxable();
-            });
-            this.fed_deduction.subscribe((value) => {
-                this.update_taxable();
-            });
-        }
-
-        fica_taxable() {
-            return Math.max(0, global_info.income.value - this.section125.value - this.hsa_contributions());
-        }
-
-        fica_tax() {
-            const amount = taxes.filter((tax) => tax.enabled.value && tax.income_sources.value.includes(fica_taxable_income_source))
-                                .map(   (tax) => tax.calculate_tax())
-                                .reduce((sum, rhs) => sum + rhs, 0);
-
-            return amount;
-        }
-
-        hsa_contributions() {
-            const amount = accounts.filter((account) => account.enabled.value && account instanceof HSA)
-                                   .map(   (account) => account.contribution.value)
-                                   .reduce((sum, rhs) => sum + rhs, 0);
-
-            return amount * 12;
-        }
-
-        ira_contributions() {
-            const amount = accounts.filter((account) => account.enabled.value && account instanceof TradIRA)
-                                   .map(   (account) => account.contribution.value)
-                                   .reduce((sum, rhs) => sum + rhs, 0);
-
-            return amount * 12;
-        }
-
-        _401K_contributions() {
-            const amount = accounts.filter((account) => account.enabled.value && account instanceof Trad401K)
-                                   .map(   (account) => account.contribution.value)
-                                   .reduce((sum, rhs) => sum + rhs, 0);
-
-            return amount * 12;
-        }
-
-        adjusted_gross_income() {
-            return Math.max(0, this.fica_taxable() - this.ira_contributions() - this._401K_contributions());
-        }
-
-        fed_taxable() {
-            return Math.max(0, this.adjusted_gross_income() - this.fed_deduction.value);
-        }
-
-        tax() {
-            const amount = taxes.filter((tax) => tax.enabled.value && (tax.income_sources.value.includes(taxable_income_source) || tax.income_sources.value.includes(adjusted_gross_income_source)))
-                                .map(   (tax) => tax.calculate_tax())
-                                .reduce((sum, rhs) => sum + rhs, 0);
-
-            return amount;
-        }
-
-        after_tax() {
-            return Math.max(0, global_info.income.value - this.section125.value - this.hsa_contributions() - this.fica_tax() - this.ira_contributions() -  this._401K_contributions() - this.tax());
-        }
-
-        update_hsa() {
-            TaxSheet.element_hsa.innerText = USDollar_Rounded.format(this.hsa_contributions());
-            this.update_fica_taxable();
-        }
-
-        update_income(value) {
-            TaxSheet.element_w2.innerText = USDollar_Rounded.format(value);
-            this.update_fica_taxable();
-            this.update_adjusted_gross_income();
-        }
-
-        update_fica_taxable() {
-            TaxSheet.element_fica.innerText = USDollar_Rounded.format(this.fica_taxable());
-            this.update_fica_tax();
-            this.update_adjusted_gross_income();
-        }
-
-        update_fica_tax() {
-            TaxSheet.element_fica_tax.innerText = USDollar_Rounded.format(this.fica_tax());
-            this.update_after_tax();
-        }
-
-        update_ira_contributions() {
-            TaxSheet.element_ira.innerText = USDollar_Rounded.format(this.ira_contributions());
-            this.update_adjusted_gross_income();
-        }
-
-        update_401K_contributions() {
-            TaxSheet.element_401k.innerText = USDollar_Rounded.format(this._401K_contributions());
-            this.update_adjusted_gross_income();
-        }
-
-        update_adjusted_gross_income() {
-            TaxSheet.element_agi.innerText = USDollar_Rounded.format(this.adjusted_gross_income());
-            this.update_taxable();
-        }
-
-        update_taxable() {
-            TaxSheet.element_taxable.innerText = USDollar_Rounded.format(this.fed_taxable());
-            this.update_tax();
-        }
-
-        update_tax() {
-            TaxSheet.element_tax.innerText = USDollar_Rounded.format(this.tax());
-            this.update_after_tax();
-        }
-
-        update_after_tax() {
-            const amount = this.after_tax();
-            TaxSheet.element_after_tax.innerText = USDollar_Rounded.format(amount);
-            TaxSheet.element_after_tax2.innerText = USDollar_Rounded.format(amount);
-            ContributionStrategy.update_leftover();
-        }
-    }
-
-    const tax_sheet = new TaxSheet();
-
     global_info.age.subscribe((value) => {
         for (const account of accounts) {
             account.update_ages();
             account.update_contributions();
         }
         WithdrawalStrategy.update_ages();
+        Dashboard.update_ages();
     });
 
     global_info.retirement_age.subscribe((value) => {
@@ -3308,6 +3445,7 @@
             account.update_contributions();
         }
         WithdrawalStrategy.update_ages();
+        Dashboard.update_ages();
     });
 
     global_info.life_expectancy.subscribe((value) => {
@@ -3316,51 +3454,25 @@
             account.update_contributions();
         }
         WithdrawalStrategy.update_ages();
+        Dashboard.update_ages();
     });
 
     global_info.income.subscribe((value) => {
-        tax_sheet.update_income(value);
+        TaxStrategy.update_income(value);
+        Dashboard.update_income();
     });
 
     global_info.expenses.subscribe((value) => {
         ContributionStrategy.update_expenses();
         WithdrawalStrategy.update_expenses();
+        Dashboard.update_expenses();
     });
 
     global_info.inflation.subscribe((value) => {
         WithdrawalStrategy.update_expenses();
+        WithdrawalStrategy.update_values();
+        Dashboard.update_expenses();
     });
-
-    const federal_income_tax_individual = new TaxTable("Federal Income (Individual)", taxable_income_source);
-    federal_income_tax_individual.add_bracket(10, 0, 11600);
-    federal_income_tax_individual.add_bracket(12, 11601, 47150);
-    federal_income_tax_individual.add_bracket(22, 47151, 100525);
-    federal_income_tax_individual.add_bracket(24, 100526, 191950);
-    federal_income_tax_individual.add_bracket(32, 191951, 243725);
-    federal_income_tax_individual.add_bracket(35, 243726, 609350);
-    federal_income_tax_individual.add_bracket(37, 609351, 999999999999);
-    federal_income_tax_individual.enabled.set_value(false);
-    federal_income_tax_individual.add();
-
-    const federal_income_tax_married = new TaxTable("Federal Income (Married)", taxable_income_source);
-    federal_income_tax_married.add_bracket(10, 0, 23200);
-    federal_income_tax_married.add_bracket(12, 23201, 94300);
-    federal_income_tax_married.add_bracket(22, 94301, 201050);
-    federal_income_tax_married.add_bracket(24, 201051, 383900);
-    federal_income_tax_married.add_bracket(32, 383901, 487450);
-    federal_income_tax_married.add_bracket(35, 487451, 731200);
-    federal_income_tax_married.add_bracket(37, 731201, 999999999999);
-    federal_income_tax_married.add();
-
-    const fica_ss_tax = new FlatTax("FICA Social Security", fica_taxable_income_source);
-    fica_ss_tax.rate.set_value(6.2);
-    fica_ss_tax.add();
-
-    const fica_med_tax = new FlatTax("FICA Medicare", fica_taxable_income_source);
-    fica_med_tax.rate.set_value(1.45);
-    fica_med_tax.add();
-
-    update_dashboard_table();
 
     const urlParams = new URLSearchParams(window.location.search);
     const urlData = urlParams.get("data");
