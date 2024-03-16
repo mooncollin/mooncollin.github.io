@@ -1264,6 +1264,7 @@
                 row.children[1].innerText = USDollar.format(expenses);
                 ++year;
             }
+            WithdrawalStrategy.update_values();
         }
 
         static shift_withdrawal(account, dir) {
