@@ -2444,11 +2444,11 @@
             this.rate = new float_property(0);
             this.retirement_rate = new float_property(0);
             this.data = {
-                values: [],
-                contributions: [],
-                total_contributions: [],
-                withdrawals: [],
-                conversions: []
+                values: [], // Yearly
+                contributions: [], // Yearly
+                total_contributions: [], // Yearly
+                withdrawals: [], // Monthly
+                conversions: []  // Yearly
             }
             this.chart = null;
             this.withdrawalChoice = new int_property(0);
@@ -2911,10 +2911,10 @@
 
             if (idx === 0)  {
                 const now = new Date();
-                this.data.values[idx] = monthlyCompoundInterest(this.balance.value, rate / 100, this.data.contributions[idx] / 12 - this.data.withdrawals[idx] - this.data.conversions[idx], 12 - now.getMonth());
+                this.data.values[idx] = monthlyCompoundInterest(this.balance.value, rate / 100, this.data.contributions[idx] / 12 - this.data.withdrawals[idx] - this.data.conversions[idx] / 12, 12 - now.getMonth());
             }
             else {
-                this.data.values[idx] = monthlyCompoundInterest(this.data.values[idx - 1], rate / 100, this.data.contributions[idx] / 12 - this.data.withdrawals[idx] - this.data.conversions[idx]);
+                this.data.values[idx] = monthlyCompoundInterest(this.data.values[idx - 1], rate / 100, this.data.contributions[idx] / 12 - this.data.withdrawals[idx] - this.data.conversions[idx] / 12);
             }
 
             if (this.__table_body != null) {
