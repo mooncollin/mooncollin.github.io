@@ -1989,9 +1989,11 @@
 
             account.name.subscribe((value) => {
                 for (const dataset of Dashboard.investment_by_type_chart.data.datasets) {
-                    dataset.label = value;
-                    Dashboard.investment_by_type_chart.update();
-                    break;
+                    if (dataset.id === account.id) {
+                        dataset.label = value;
+                        Dashboard.investment_by_type_chart.update();
+                        break;
+                    }
                 }
             });
 
