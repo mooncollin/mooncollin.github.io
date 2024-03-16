@@ -265,10 +265,7 @@
         const data_obj = {
             global_info: global_info.serialize(),
             accounts: accounts.map((acct) => acct.serialize()),
-            taxes: taxes.filter((tax) => tax != federal_income_tax_individual &&
-                                         tax != federal_income_tax_married &&
-                                         tax != fica_med_tax &&
-                                         tax != fica_ss_tax).map((tax) => tax.serialize()),
+            taxes: taxes.map((tax) => tax.serialize()),
             contributionOrder: ContributionStrategy.contributionOrder.map((obj) => obj.serialize()),
             withdrawalOrder: WithdrawalStrategy.withdrawalOrder.map((obj) => obj.serialize()),
             taxStrategy: TaxStrategy.serialize()
@@ -321,7 +318,14 @@
             if (type != null) {
                 const tax = new type(tax_data.name);
                 tax.deserialize(tax_data);
+                const existing_tax = Tax.get_special_tax(tax.__special_id);
+                if (existing_tax != null) {
+                    existing_tax.delete();
+                }
                 tax.add();
+                if (existing_tax != null) {
+                    Tax.set_special_tax(tax);
+                }
             }
         }
 
@@ -710,8 +714,8 @@
             ss_withdrawals *= 12;
 
             const combined_income = TaxStrategy.adjusted_gross_income() + ss_withdrawals / 2;
-            const low_bracket = federal_income_tax_individual.enabled.value ? 25000 : 34000;
-            const high_bracket = federal_income_tax_individual.enabled.value ? 32000 : 44000;
+            const low_bracket = (federal_income_tax_individual != null && federal_income_tax_individual.enabled.value) ? 25000 : 34000;
+            const high_bracket = (federal_income_tax_individual != null && federal_income_tax_individual.enabled.value) ? 32000 : 44000;
 
             let dif = 0;
             let rate = 0;
@@ -787,13 +791,17 @@
             let found_tax = null;
             for (const tax of taxes) {
                 if (tax.enabled.value) {
-                    if (tax.id === federal_income_tax_individual.id) {
-                        found_tax = federal_income_tax_individual;
-                        break;
+                    if (federal_income_tax_individual != null) {
+                        if (tax.id === federal_income_tax_individual.id) {
+                            found_tax = federal_income_tax_individual;
+                            break;
+                        }
                     }
-                    else if (tax.id === federal_income_tax_married.id) {
-                        found_tax = federal_income_tax_married;
-                        break;
+                    if (federal_income_tax_married != null) {
+                        if (tax.id === federal_income_tax_married.id) {
+                            found_tax = federal_income_tax_married;
+                            break;
+                        }
                     }
                 }
             }
@@ -1554,7 +1562,19 @@
         }
     }
 
+    let federal_income_tax_individual = null;
+    let federal_income_tax_married = null;
+    let fica_ss_tax = null;
+    let fica_med_tax = null;
+
     class Tax extends EditableConfig {
+        static federal_income_tax_individual_special_id = 0;
+        static federal_income_tax_married_special_id = 1;
+        static fica_ss_tax_special_id = 2;
+        static fica_med_tax_special_id = 3;
+
+        static special_taxes = new Set();
+
         static IncomeSourceProperty = class extends array_property {
             constructor(value = []) {
                 super(value,
@@ -1562,6 +1582,96 @@
                     (str)  => all_income_sources.find((income) => income.name.value == str)
                 );
             }
+        }
+
+        static add_special_tax(special_id) {
+            switch (special_id) {
+                case TaxTable.federal_income_tax_individual_special_id:
+                    TaxTable.add_federal_income_tax_individual();
+                    break;
+                case TaxTable.federal_income_tax_married_special_id:
+                    TaxTable.add_federal_income_tax_married();
+                    break;
+                case TaxTable.fica_ss_tax_special_id:
+                    TaxTable.add_fica_ss_tax();
+                    break;
+                case TaxTable.fica_med_tax_special_id:
+                    TaxTable.add_fica_med_tax();
+                    break;
+            }
+        }
+
+        static get_special_tax(special_id) {
+            switch (special_id) {
+                case TaxTable.federal_income_tax_individual_special_id:
+                    return federal_income_tax_individual;
+                case TaxTable.federal_income_tax_married_special_id:
+                    return federal_income_tax_married;
+                case TaxTable.fica_ss_tax_special_id:
+                    return fica_ss_tax;
+                case TaxTable.fica_med_tax_special_id:
+                    return fica_med_tax;
+            }
+
+            return null;
+        }
+
+        static set_special_tax(tax) {
+            switch (tax.__special_id) {
+                case TaxTable.federal_income_tax_individual_special_id:
+                    federal_income_tax_individual = tax;
+                    break;
+                case TaxTable.federal_income_tax_married_special_id:
+                    federal_income_tax_married = tax;
+                    break;
+                case TaxTable.fica_ss_tax_special_id:
+                    fica_ss_tax = tax;
+                    break;
+                case TaxTable.fica_med_tax_special_id:
+                    fica_med_tax = tax;
+                    break;
+            }
+        }
+
+        static add_federal_income_tax_individual() {
+            federal_income_tax_individual = new TaxTable("Federal Income (Individual)", taxable_income_source);
+            federal_income_tax_individual.__special_id = TaxTable.federal_income_tax_individual_special_id;
+            federal_income_tax_individual.add_bracket(10, 0, 11600);
+            federal_income_tax_individual.add_bracket(12, 11601, 47150);
+            federal_income_tax_individual.add_bracket(22, 47151, 100525);
+            federal_income_tax_individual.add_bracket(24, 100526, 191950);
+            federal_income_tax_individual.add_bracket(32, 191951, 243725);
+            federal_income_tax_individual.add_bracket(35, 243726, 609350);
+            federal_income_tax_individual.add_bracket(37, 609351, 999999999999);
+            federal_income_tax_individual.enabled.set_value(false);
+            federal_income_tax_individual.add();
+        }
+
+        static add_federal_income_tax_married() {
+            federal_income_tax_married = new TaxTable("Federal Income (Married)", taxable_income_source);
+            federal_income_tax_married.__special_id = TaxTable.federal_income_tax_married_special_id;
+            federal_income_tax_married.add_bracket(10, 0, 23200);
+            federal_income_tax_married.add_bracket(12, 23201, 94300);
+            federal_income_tax_married.add_bracket(22, 94301, 201050);
+            federal_income_tax_married.add_bracket(24, 201051, 383900);
+            federal_income_tax_married.add_bracket(32, 383901, 487450);
+            federal_income_tax_married.add_bracket(35, 487451, 731200);
+            federal_income_tax_married.add_bracket(37, 731201, 999999999999);
+            federal_income_tax_married.add();
+        }
+
+        static add_fica_ss_tax() {
+            fica_ss_tax = new FlatTax("FICA Social Security", fica_taxable_income_source);
+            fica_ss_tax.__special_id = TaxTable.fica_ss_tax_special_id;
+            fica_ss_tax.rate.set_value(6.2);
+            fica_ss_tax.add();
+        }
+
+        static add_fica_med_tax() {
+            fica_med_tax = new FlatTax("FICA Medicare", fica_taxable_income_source);
+            fica_med_tax.__special_id = TaxTable.fica_med_tax_special_id;
+            fica_med_tax.rate.set_value(1.45);
+            fica_med_tax.add();
         }
 
         constructor(name, ...income_sources) {
@@ -1575,12 +1685,14 @@
             this.enabled.subscribe((value) => {
                 this.__update_taxes();
             });
+            this.__special_id = -1;
         }
 
         serialize() {
             const obj = super.serialize();
 
             obj.income_sources = this.income_sources.value.map((source) => source.serialize());
+            obj.special_id = this.__special_id;
 
             return obj;
         }
@@ -1588,6 +1700,7 @@
         deserialize(obj) {
             super.deserialize(obj);
             this.income_sources.set_value(obj.income_sources.map((source_data) => all_income_sources.find((source) => source.name.value === source_data.name)));
+            this.__special_id = obj.special_id;
         }
 
         __update_taxes() {
@@ -1705,6 +1818,13 @@
     }
 
     class TaxTable extends Tax {
+        static {
+            TaxTable.special_taxes.add(TaxTable.federal_income_tax_individual_special_id);
+            TaxTable.special_taxes.add(TaxTable.federal_income_tax_married_special_id);
+            TaxTable.special_taxes.add(TaxTable.fica_ss_tax_special_id);
+            TaxTable.special_taxes.add(TaxTable.fica_med_tax_special_id);
+        }
+
         constructor(name, ...income_sources) {
             super(name, ...income_sources)
             this.brackets = []
@@ -1852,35 +1972,6 @@
     const long_term_capital_gains_source = new IncomeSource("Long-Term Capital Gains");
     const social_security_source = new IncomeSource("Social Security");
     const all_income_sources = [fica_taxable_income_source, adjusted_gross_income_source, taxable_income_source, long_term_capital_gains_source];
-
-    const federal_income_tax_individual = new TaxTable("Federal Income (Individual)", taxable_income_source);
-    federal_income_tax_individual.add_bracket(10, 0, 11600);
-    federal_income_tax_individual.add_bracket(12, 11601, 47150);
-    federal_income_tax_individual.add_bracket(22, 47151, 100525);
-    federal_income_tax_individual.add_bracket(24, 100526, 191950);
-    federal_income_tax_individual.add_bracket(32, 191951, 243725);
-    federal_income_tax_individual.add_bracket(35, 243726, 609350);
-    federal_income_tax_individual.add_bracket(37, 609351, 999999999999);
-    federal_income_tax_individual.enabled.set_value(false);
-    federal_income_tax_individual.add();
-
-    const federal_income_tax_married = new TaxTable("Federal Income (Married)", taxable_income_source);
-    federal_income_tax_married.add_bracket(10, 0, 23200);
-    federal_income_tax_married.add_bracket(12, 23201, 94300);
-    federal_income_tax_married.add_bracket(22, 94301, 201050);
-    federal_income_tax_married.add_bracket(24, 201051, 383900);
-    federal_income_tax_married.add_bracket(32, 383901, 487450);
-    federal_income_tax_married.add_bracket(35, 487451, 731200);
-    federal_income_tax_married.add_bracket(37, 731201, 999999999999);
-    federal_income_tax_married.add();
-
-    const fica_ss_tax = new FlatTax("FICA Social Security", fica_taxable_income_source);
-    fica_ss_tax.rate.set_value(6.2);
-    fica_ss_tax.add();
-
-    const fica_med_tax = new FlatTax("FICA Medicare", fica_taxable_income_source);
-    fica_med_tax.rate.set_value(1.45);
-    fica_med_tax.add();
 
     class Dashboard {
         static table_body = document.getElementById("Dashboard-Table").getElementsByTagName("tbody")[0];
@@ -3375,6 +3466,19 @@
     const urlData = urlParams.get("data");
     if (urlData != null) {
         load_json(atob(urlData));
+    }
+
+    {
+        const special_ids = new Set();
+        for (const tax of taxes) {
+            special_ids.add(tax.__special_id);
+        }
+
+        for (const id of TaxTable.special_taxes) {
+            if (!special_ids.has(id)) {
+                TaxTable.add_special_tax(id);
+            }
+        }
     }
 </script>
 {% endblock %}
