@@ -1469,8 +1469,16 @@
                         const account = WithdrawalStrategy.withdrawalOrder[start_idx].account;
                         account.update_value(idx);
                     }
-                }
 
+                }
+                
+                for (const account of accounts) {
+                    if (account instanceof InvestmentAccount) {
+                        if (account.chart != null) {
+                            account.chart.update();
+                        }
+                    }
+                }
                 WithdrawalStrategy.withdrawal_chart.update();
                 Dashboard.update_income();
                 Dashboard.update_values();
