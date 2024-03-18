@@ -194,6 +194,11 @@ class money_property extends float_property {
         super.set_value(money_property.__validate(value, this.precision));
     }
 
+    convert_from(input) {
+        const input2 = input.value.replace(",", "");
+        this.set_value(+input2);
+    }
+
     toString() {
         return this.value.toFixed(this.precision);
     }
@@ -296,18 +301,25 @@ class array_property extends property {
 
 function create_input(prop) {
     var input = document.createElement("input");
-    switch (typeof(prop.value)) {
-        case "number":
-            input.classList.add("form-control");
-            input.setAttribute("type", "number")
-            break;
-        case "boolean":
-            input.classList.add("form-check-input");
-            input.setAttribute("type", "checkbox");
-            break;
-        default:
-            input.classList.add("form-control");
-            input.setAttribute("type", "text");
+    if (prop instanceof money_property) {
+        input.classList.add("form-control");
+        input.setAttribute("type", "text");
+    }
+    else if (prop instanceof int_property) {
+        input.classList.add("form-control");
+        input.setAttribute("type", "number");
+    }
+    else if (prop instanceof float_property) {
+        input.classList.add("form-control");
+        input.setAttribute("type", "number");
+    }
+    else if (prop instanceof boolean_property) {
+        input.classList.add("form-check-input");
+        input.setAttribute("type", "checkbox");
+    }
+    else {
+        input.classList.add("form-control");
+        input.setAttribute("type", "text");
     }
     prop.convert_to(input);
     prop.subscribe((value) => {
@@ -374,4 +386,8 @@ function download(data, filename, type) {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
     }, 0);
+}
+
+function round_dollars(amount) {
+    return +amount.toFixed(0);
 }

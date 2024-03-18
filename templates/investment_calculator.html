@@ -7,7 +7,7 @@
         <button type="button" class="btn btn-primary ms-5" data-bs-toggle="tooltip" data-bs-title="Save to File" onclick="save_to_file()">
             <i class="bi bi-download"></i>
         </button>
-        <button type="button" class="btn btn-primary ms-2" data-bs-toggle="tooltip" data-bs-title="Copy URL to Clipboard" onclick="save_to_clipboard()">
+        <button type="button" id="save-clipboard" class="btn btn-primary ms-2" data-bs-toggle="tooltip" data-bs-title="Copy URL to Clipboard" onclick="save_to_clipboard()">
             <i class="bi bi-clipboard"></i>
         </button>
         <button type="button" class="btn btn-primary ms-2" data-bs-toggle="tooltip" data-bs-title="Load From File">
@@ -471,10 +471,7 @@
 
         __recalc_ages() {
             this.data.ages.length = 0
-            for (let age = this.age.value; age < this.retirement_age.value; ++age) {
-                this.data.ages.push(age);
-            }
-            for (let age = Math.max(this.age.value, this.retirement_age.value); age <= this.life_expectancy.value; ++age) {
+            for (let age = this.age.value; age <= this.life_expectancy.value; ++age) {
                 this.data.ages.push(age);
             }
             this.__recalc_expenses();
@@ -594,7 +591,7 @@
                 return 0;
             }
             
-            return Math.max(0, global_info.income.value - TaxStrategy.section125.value - TaxStrategy.hsa_contributions());
+            return round_dollars(Math.max(0, global_info.income.value - TaxStrategy.section125.value - TaxStrategy.hsa_contributions()));
         }
 
         static fica_tax(year = 0) {
@@ -608,7 +605,7 @@
                 }
             }
 
-            return amount;
+            return round_dollars(amount);
         }
 
         static hsa_contributions() {
@@ -684,14 +681,14 @@
                     }
                 }
 
-                return amount;
+                return round_dollars(amount * 12);
             }
 
             return 0;
         }
 
         static fed_deduction_value(year = 0) {
-            return TaxStrategy.fed_deduction.value * Math.pow(1 + global_info.inflation.value / 100, year);
+            return round_dollars(TaxStrategy.fed_deduction.value * Math.pow(1 + global_info.inflation.value / 100, year));
         }
 
         static fed_taxable(year = 0) {
@@ -699,7 +696,7 @@
         }
 
         static fed_taxable2(year = 0) {
-            return TaxStrategy.adjusted_gross_income(year) + TaxStrategy.ss_taxable(year) - TaxStrategy.fed_deduction_value(year);
+            return round_dollars(TaxStrategy.adjusted_gross_income(year) + TaxStrategy.ss_taxable(year) - TaxStrategy.fed_deduction_value(year));
         }
 
         static ss_taxable(year = 0) {
@@ -728,7 +725,7 @@
             }
 
             const choice = Math.min(dif, ss_withdrawals);
-            return choice * rate;
+            return round_dollars(choice * rate);
         }
 
         static gather_incomes(year, ...income_sources) {
@@ -771,7 +768,7 @@
                 }
             }
 
-            return amount;
+            return round_dollars(amount);
         }
 
         static after_tax(year = 0) {
@@ -784,12 +781,12 @@
             if (global_info.data.ages[year] < global_info.retirement_age.value) {
                 income = global_info.income.value * Math.pow(1 + global_info.inflation.value / 100, year);
             }
-            return Math.max(0, (income + withdrawals)
+            return round_dollars(Math.max(0, (income + withdrawals)
                    - TaxStrategy.tax(year, ...all_income_sources))
                    - TaxStrategy._401K_contributions(year)
                    - TaxStrategy.ira_contributions(year)
                    - TaxStrategy.hsa_contributions(year)
-                   - TaxStrategy.section125.value * (global_info.data.ages[year] < global_info.retirement_age.value);
+                   - TaxStrategy.section125.value * (global_info.data.ages[year] < global_info.retirement_age.value));
         }
         
         static federal_marginal_bracket(year = 0) {
@@ -1299,11 +1296,12 @@
                 *     Update account value.
                 */
                 let cumulative_taxes = 0;
+                let taxes = 0;
                 for (const [idx, age] of enumerate(global_info.data.ages)) {
                     if (age >= global_info.retirement_age.value) {
                         // Calculate withdrawals
                         const table_row = WithdrawalStrategy.withdrawal_table_body.children[age - global_info.retirement_age.value];
-                        let expenses = global_info.data.expenses[idx] / 12;
+                        let expenses = global_info.data.expenses[idx] / 12 + taxes / 12;
                         for (let obj_idx = 0; obj_idx < WithdrawalStrategy.withdrawalOrder.length; ++obj_idx) {
                             const account = WithdrawalStrategy.withdrawalOrder[obj_idx].account;
                             if (obj_idx < start_idx) {
@@ -1346,7 +1344,7 @@
                             }
                         }
 
-                        let taxes = TaxStrategy.tax(idx, taxable_income_source, social_security_source);
+                        taxes = TaxStrategy.tax(idx, taxable_income_source, social_security_source);
                         taxes += TaxStrategy.tax(idx, long_term_capital_gains_source);
                         taxes += TaxStrategy.tax(idx, adjusted_gross_income_source);
 
@@ -1367,6 +1365,10 @@
                         // We aren't in retirement, so this account changing of values
                         // does not affect other accounts.
                         const account = WithdrawalStrategy.withdrawalOrder[start_idx].account;
+                        account.data.withdrawals[idx] = 0;
+                        if (account instanceof InvestmentAccount) {
+                            account.data.conversions[idx] = 0;
+                        }
                         account.update_value(idx);
                     }
 
@@ -1941,11 +1943,17 @@
         }
 
         calculate_tax(amount, year = 0) {
+            const inflation = Math.pow(1 + global_info.inflation.value / 100, year);
             var tax = 0;
-            for (const bracket of this.brackets) {
-                amount -= bracket.min.value * Math.pow(1 + global_info.inflation.value / 100, year);
+            for (const [idx, bracket] of enumerate(this.brackets)) {
+                if (idx === 0) {
+                    amount -= bracket.min.value * inflation;
+                }
+                else {
+                    amount -= (bracket.min.value * inflation) - (this.brackets[idx - 1].min.value * inflation);
+                }
                 if (amount > 0) {
-                    tax += (bracket.rate.value/100) * Math.min(amount, bracket.max.value * Math.pow(1 + global_info.inflation.value / 100, year));
+                    tax += (bracket.rate.value/100) * Math.min(amount, bracket.max.value * inflation);
                 }
                 else {
                     break;
@@ -1958,8 +1966,13 @@
         calculate_marginal(amount, year = 0) {
             const inflation = Math.pow(1 + global_info.inflation.value / 100, year);
             let rate = 0;
-            for (const bracket of this.brackets) {
-                amount -= bracket.min.value * inflation;
+            for (const [idx, bracket] of enumerate(this.brackets)) {
+                if (idx === 0) {
+                    amount -= bracket.min.value * inflation;
+                }
+                else {
+                    amount -= (bracket.min.value * inflation) - (this.brackets[idx - 1].min.value * inflation);
+                }
                 if (amount <= 0) {
                     break;
                 }
@@ -3438,6 +3451,9 @@
             account.update_contributions();
         }
         WithdrawalStrategy.update_ages();
+        for (const obj of WithdrawalStrategy.withdrawalOrder) {
+            WithdrawalStrategy.update_values(obj.account);
+        }
         Dashboard.update_ages();
     });
 
@@ -3447,6 +3463,9 @@
             account.update_contributions();
         }
         WithdrawalStrategy.update_ages();
+        for (const obj of WithdrawalStrategy.withdrawalOrder) {
+            WithdrawalStrategy.update_values(obj.account);
+        }
         Dashboard.update_ages();
     });
 
@@ -3456,6 +3475,9 @@
             account.update_contributions();
         }
         WithdrawalStrategy.update_ages();
+        for (const obj of WithdrawalStrategy.withdrawalOrder) {
+            WithdrawalStrategy.update_values(obj.account);
+        }
         Dashboard.update_ages();
     });
 
@@ -3476,23 +3498,15 @@
         Dashboard.update_expenses();
     });
 
+    TaxTable.add_federal_income_tax_individual();
+    TaxTable.add_federal_income_tax_married();
+    TaxTable.add_fica_ss_tax();
+    TaxTable.add_fica_med_tax();
+
     const urlParams = new URLSearchParams(window.location.search);
     const urlData = urlParams.get("data");
     if (urlData != null) {
         load_json(atob(urlData));
-    }
-
-    {
-        const special_ids = new Set();
-        for (const tax of taxes) {
-            special_ids.add(tax.__special_id);
-        }
-
-        for (const id of TaxTable.special_taxes) {
-            if (!special_ids.has(id)) {
-                TaxTable.add_special_tax(id);
-            }
-        }
     }
 </script>
 {% endblock %}
