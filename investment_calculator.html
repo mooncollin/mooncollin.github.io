@@ -781,12 +781,12 @@
                 for (const account of accounts) {
                     if (account.enabled.value) {
                         if (account instanceof TaxableBrokerage) {
-                            amount += account.data.withdrawals[year];
+                            amount += account.ltcg_taxable(year);
                         }
                     }
                 }
 
-                return round_dollars(amount * 12);
+                return round_dollars(amount);
             }
 
             return 0;
@@ -1223,7 +1223,8 @@
                                 }
                             },
                             y1: {
-                                position: 'right'
+                                position: 'right',
+                                min: 0
                             }
                         },
                         interaction: {
@@ -1266,7 +1267,6 @@
                 row.children[1].innerText = USDollar.format(expenses);
                 ++year;
             }
-            WithdrawalStrategy.update_values();
         }
 
         static shift_withdrawal(account, dir) {
@@ -1382,53 +1382,70 @@
             }
         }
 
-        static update_values(account = null) {
-            let start_idx = 0;
-            if (account != null) {
-                start_idx = WithdrawalStrategy.withdrawalOrder.findIndex((obj) => obj.account.id === account.id);
-            }
-
-            if (start_idx != -1 && start_idx < WithdrawalStrategy.withdrawalOrder.length) {
-                /*
-                *  The algorithm is:
-                *
-                *  For each year:
-                *     If in a retirement year:
-                *        Calculate the withdrawal of each account on and after the account parameter.
-                *        Calculate the conversion of each account. Withdrawals from an account in lower priority can
-                *        affect conversions from account higher in priority.
-                *        Update the withdrawal ui.
-                *     Update account value.
-                */
-                let cumulative_taxes = 0;
-                let taxes = 0;
-                for (const [idx, age] of enumerate(global_info.data.ages)) {
-                    if (age >= global_info.retirement_age.value) {
-                        // Calculate withdrawals
-                        const table_row = WithdrawalStrategy.withdrawal_table_body.children[age - global_info.retirement_age.value];
-                        let expenses = global_info.data.expenses[idx] / 12 + taxes / 12;
-                        for (let obj_idx = 0; obj_idx < WithdrawalStrategy.withdrawalOrder.length; ++obj_idx) {
-                            const account = WithdrawalStrategy.withdrawalOrder[obj_idx].account;
-                            if (obj_idx < start_idx) {
-                                expenses -= account.data.withdrawals[idx];
+        static update_values() {
+            /*
+            *  The algorithm is:
+            *
+            *  For each year:
+            *     If in a retirement year:
+            *        Calculate the withdrawal of each account on and after the account parameter.
+            *        Calculate the conversion of each account. Withdrawals from an account in lower priority can
+            *        affect conversions from account higher in priority.
+            *        Update the withdrawal ui.
+            *     Update account value.
+            */
+            let cumulative_taxes = 0;
+            let taxes = 0;
+            let extra_withdrawals = 0;
+            for (const [idx, age] of enumerate(global_info.data.ages)) {
+                const expenses = global_info.data.expenses[idx] / 12 + taxes / 12 - extra_withdrawals;
+                let expenses_left = Math.max(0, expenses);
+                // Calculate Withdrawals
+                extra_withdrawals = 0;
+                let rmds = new Set();
+                for (const obj of WithdrawalStrategy.withdrawalOrder) {
+                    const account = obj.account;
+                    if (account.enabled.value) {
+                        if (age >= global_info.retirement_age.value) {
+                            const withdrawal = account.calculate_withdrawal(expenses_left, idx);
+                            if (account instanceof PreTaxInvestmentAccount) {
+                                if (account.is_rmd(expenses_left, idx)) {
+                                    rmds.add(account.id);
+                                }
                             }
-                            else {
-                                const withdrawal = account.calculate_withdrawal(expenses, idx);
-                                account.data.withdrawals[idx] = withdrawal;
-                                expenses -= withdrawal;
+                            if (withdrawal > expenses_left) {
+                                extra_withdrawals += withdrawal - expenses_left;
                             }
-                            expenses = Math.max(expenses, 0);
+                            account.data.withdrawals[idx] = withdrawal;
+                            expenses_left -= withdrawal;
+                            expenses_left = Math.max(0, expenses_left);
                         }
-
-                        // Calculate conversions
-                        let taxable = TaxStrategy.fed_taxable2(idx);
-                        let conversion_available = 0;
-                        if (taxable < 0) {
-                            conversion_available = -taxable;
+                        else {
+                            account.data.withdrawals[idx] = 0;
+                            if (account instanceof InvestmentAccount) {
+                                account.data.conversions[idx] = 0;
+                            }
+                            account.update_value(idx);
                         }
-                        conversion_available /= 12;
-                        for (const [obj_idx, obj] of enumerate(WithdrawalStrategy.withdrawalOrder)) {
-                            const account = obj.account;
+                    }
+                }
+                
+                // Calculate conversions
+                if (age >= global_info.retirement_age.value) {
+                    const table_row = WithdrawalStrategy.withdrawal_table_body.children[age - global_info.retirement_age.value];
+                    table_row.children[1].innerText = USDollar.format(expenses);
+                    let taxable = TaxStrategy.fed_taxable2(idx);
+                    let conversion_available = 0;
+                    if (taxable < 0) {
+                        conversion_available = -taxable;
+                    }
+                    for (const [obj_idx, obj] of enumerate(WithdrawalStrategy.withdrawalOrder)) {
+                        const account = obj.account;
+                        if (account.enabled.value) {
+                            let withdrawal_text = USDollar.format(account.data.withdrawals[idx]);
+                            if (rmds.has(account.id)) {
+                                withdrawal_text = `<span class="text-warning">${withdrawal_text}</span>`;
+                            }
                             if (account instanceof InvestmentAccount) {
                                 if (conversion_available <= 0) {
                                     account.data.conversions[idx] = 0;
@@ -1439,57 +1456,53 @@
                                     conversion_available -= conversion;
                                 }
                                 if (account.data.conversions[idx] > 0.01) {
-                                    table_row.children[obj_idx + 2].innerHTML = `${USDollar.format(account.data.withdrawals[idx])} (<span class="text-success">${USDollar.format(account.data.conversions[idx])}</span>)`
+                                    table_row.children[obj_idx + 2].innerHTML = `${withdrawal_text} (<span class="text-success">${USDollar.format(account.data.conversions[idx] / 12)}</span>)`
                                 }
                                 else {
-                                    table_row.children[obj_idx + 2].innerText = USDollar.format(account.data.withdrawals[idx]);
+                                    table_row.children[obj_idx + 2].innerHTML = withdrawal_text;
                                 }
                             } else {
-                                table_row.children[obj_idx + 2].innerText = USDollar.format(account.data.withdrawals[idx]);
+                                table_row.children[obj_idx + 2].innerHTML = withdrawal_text;
                             }
                         }
+                        else {
+                            table_row.children[obj_idx + 2].innerHTML = USDollar.format(0);
+                        }
+                    }
 
-                        taxes = TaxStrategy.tax(idx, taxable_income_source, social_security_source);
-                        taxes += TaxStrategy.tax(idx, long_term_capital_gains_source);
-                        taxes += TaxStrategy.tax(idx, adjusted_gross_income_source);
-
-                        // Update account values & ui
-                        for (const obj of WithdrawalStrategy.withdrawalOrder) {
-                            const account = obj.account;
+                    // Update all accounts after all accounts
+                    // have their information updated.
+                    for (const obj of WithdrawalStrategy.withdrawalOrder) {
+                        const account = obj.account;
+                        if (account.enabled.value) {
                             account.update_value(idx);
                         }
-
-                        table_row.children[table_row.children.length - 4].innerText = USDollar.format(expenses);
-                        table_row.children[table_row.children.length - 2].innerText = USDollar.format(taxes);
-                        cumulative_taxes += taxes;
-                        table_row.children[table_row.children.length - 1].innerText = USDollar.format(cumulative_taxes);
-                        WithdrawalStrategy.data.withdrawalsFedTaxBracket[idx] = TaxStrategy.federal_marginal_bracket(idx);
-                        table_row.children[table_row.children.length - 3].innerText = `${WithdrawalStrategy.data.withdrawalsFedTaxBracket[idx]}%`;
                     }
-                    else {
-                        // We aren't in retirement, so this account changing of values
-                        // does not affect other accounts.
-                        const account = WithdrawalStrategy.withdrawalOrder[start_idx].account;
-                        account.data.withdrawals[idx] = 0;
-                        if (account instanceof InvestmentAccount) {
-                            account.data.conversions[idx] = 0;
-                        }
-                        account.update_value(idx);
-                    }
-
+                    taxes = TaxStrategy.tax(idx, taxable_income_source, social_security_source);
+                    taxes += TaxStrategy.tax(idx, long_term_capital_gains_source);
+                    taxes += TaxStrategy.tax(idx, adjusted_gross_income_source);
+    
+                    table_row.children[table_row.children.length - 4].innerText = USDollar.format(expenses_left);
+                    table_row.children[table_row.children.length - 2].innerText = USDollar.format(taxes);
+                    cumulative_taxes += taxes;
+                    table_row.children[table_row.children.length - 1].innerText = USDollar.format(cumulative_taxes);
+                    WithdrawalStrategy.data.withdrawalsFedTaxBracket[idx] = TaxStrategy.federal_marginal_bracket(idx);
+                    table_row.children[table_row.children.length - 3].innerText = `${WithdrawalStrategy.data.withdrawalsFedTaxBracket[idx]}%`;
                 }
-                
-                for (const account of accounts) {
+            }
+            
+            for (const account of accounts) {
+                if (account.enabled.value) {
                     if (account instanceof InvestmentAccount) {
                         if (account.chart != null) {
                             account.chart.update();
                         }
                     }
                 }
-                WithdrawalStrategy.withdrawal_chart.update();
-                Dashboard.update_income();
-                Dashboard.update_values();
             }
+            WithdrawalStrategy.withdrawal_chart.update();
+            Dashboard.update_income();
+            Dashboard.update_values();
         }
     }
 
@@ -2252,7 +2265,7 @@
         }
 
         update_values() {
-            WithdrawalStrategy.update_values(this);
+            WithdrawalStrategy.update_values();
         }
         update_contributions() {}
         update_ages() {}
@@ -2919,7 +2932,7 @@
         }
 
         update_values() {
-            WithdrawalStrategy.update_values(this);
+            WithdrawalStrategy.update_values();
         }
 
         update_value(idx) {
@@ -2929,10 +2942,10 @@
 
             if (idx === 0)  {
                 const now = new Date();
-                this.data.values[idx] = monthlyCompoundInterest(this.balance.value, rate / 100, this.data.contributions[idx] / 12 - this.data.withdrawals[idx] - this.data.conversions[idx] / 12, 12 - now.getMonth());
+                this.data.values[idx] = Math.max(0, monthlyCompoundInterest(this.balance.value, rate / 100, this.data.contributions[idx] / 12 - this.data.withdrawals[idx] - this.data.conversions[idx] / 12, 12 - now.getMonth()));
             }
             else {
-                this.data.values[idx] = monthlyCompoundInterest(this.data.values[idx - 1], rate / 100, this.data.contributions[idx] / 12 - this.data.withdrawals[idx] - this.data.conversions[idx] / 12);
+                this.data.values[idx] = Math.max(0, monthlyCompoundInterest(this.data.values[idx - 1], rate / 100, this.data.contributions[idx] / 12 - this.data.withdrawals[idx] - this.data.conversions[idx] / 12));
             }
 
             if (this.__table_body != null) {
@@ -3132,10 +3145,10 @@
         calculate_conversion(deduction, idx) {
             if (this.roth_converting.value && this.roth_account != null) {
                 if (idx === 0) {
-                    return Math.min(deduction, this.balance.value / 12 - this.data.withdrawals[idx]);
+                    return Math.min(deduction, this.balance.value - this.data.withdrawals[idx] * 12);
                 }
 
-                return Math.min(deduction, this.data.values[idx - 1] / 12 - this.data.withdrawals[idx]);
+                return Math.min(deduction, this.data.values[idx - 1] - this.data.withdrawals[idx] * 12);
             }
 
             return 0;
@@ -3143,7 +3156,7 @@
 
         calculate_withdrawal(expense, idx) {
             const age = global_info.data.ages[idx];
-            if (age < 59) {
+            if (age < 60) {
                 return 0;
             }
 
@@ -3157,6 +3170,20 @@
             }
             
             return amount;
+        }
+
+        is_rmd(expense, idx) {
+            const age = global_info.data.ages[idx];
+            const rmd = PreTaxInvestmentAccount.RMD_table[Math.min(120, age)];
+            if (rmd != undefined) {
+                let amount = super.calculate_withdrawal(expense, idx);
+                if (idx === 0) {
+                    return Math.max(amount, (this.balance.value / rmd) / 12) != amount;
+                }
+                return Math.max(amount, (this.data.values[idx - 1] / rmd) / 12) != amount;
+            }
+
+            return false;
         }
 
         update_values() {
@@ -3366,6 +3393,41 @@
         config_name() {
             return "Taxable Brokerage";
         }
+
+        ltcg_taxable(year) {
+            const age = global_info.data.ages[year];
+            if (age < global_info.retirement_age.value) {
+                return 0;
+            }
+            
+            /*
+            * We need to figure out how much of our withdrawals are gains.
+            * The Algorithm:
+            *   1. We need to find out how many contributions are already taken
+            *      up by past withdrawals up to this year.
+            *   2. Any contributions leftover can be used to subtract withdrawals, which are gains.
+            */
+            let past_withdrawals = 0;
+            for (let idx = 0; idx < year; ++idx) {
+                past_withdrawals += this.data.withdrawals[idx] * 12;
+            }
+
+            let contribution_idx = 0;
+            for (; contribution_idx < year && past_withdrawals > 0; ++contribution_idx) {
+                past_withdrawals -= this.data.contributions[contribution_idx];
+            }
+
+            let current_withdrawals = this.data.withdrawals[year] * 12;
+            if (past_withdrawals < 0)
+            {
+                current_withdrawals += past_withdrawals;
+                for (; contribution_idx < year && current_withdrawals > 0; ++contribution_idx) {
+                    current_withdrawals -= this.data.contributions[contribution_idx];
+                }
+            }
+
+            return current_withdrawals;
+        }
     }
 
 
@@ -3399,7 +3461,7 @@
 
         calculate_withdrawal(expense, idx) {
             const age = global_info.data.ages[idx];
-            if (age < 59) {
+            if (age < 60) {
                 const contributions_up_to_this_point = this.data.contributions.slice(0, idx).reduce((sum, rhs) => sum + rhs, 0);
                 const withdrawals_up_to_this_point   = this.data.withdrawals.slice(0, idx).reduce((sum, rhs) => sum + rhs, 0);
                 const principal_available = contributions_up_to_this_point - withdrawals_up_to_this_point;
@@ -3409,28 +3471,21 @@
             return super.calculate_withdrawal(expense, idx);
         }
 
-        update_contributions() {
-            super.update_contributions();
+        update_value(idx) {
+            const now = new Date();
+            const age = global_info.data.ages[idx];
 
-            for (const [idx, age] of enumerate(global_info.data.ages)) {
-                let extra_contributions = 0;
-                for (const account of accounts) {
-                    if (account instanceof PreTaxInvestmentAccount) {
-                        if (account.roth_converting.value){
-                            if (account.roth_account != null) {
-                                if (account.roth_account.id === this.id) {
-                                    extra_contributions += account.data.conversions[idx];
-                                }
-                            }
-                        }
-                    }
-                }
-                if (extra_contributions != 0) {
-                    this.data.contributions[idx] += extra_contributions;
-                    for (let idx2 = idx; idx2 < this.data.contributions.length; ++idx2) {
-                        this.data.total_contributions[idx2] += extra_contributions;
-                    }
-                }
+            const contribution = age >= global_info.retirement_age.value 
+                                     ? this.contribution.value
+                                     : 0;
+            
+            if (idx === 0) {
+                this.data.contributions[idx] = contribution * (12 - now.getMonth());;
+                this.data.total_contributions[idx] = this.data.contributions[idx];
+            }
+            else {
+                this.data.contributions[idx] = contribution * 12;
+                this.data.total_contributions[idx] = this.data.contributions[idx] + this.data.total_contributions[idx - 1];
             }
 
             if (this.__table_body != null) {
@@ -3438,6 +3493,29 @@
                     row.children[1].innerText = USDollar.format(this.data.total_contributions[idx]);
                 }
             }
+
+            let extra_contributions = 0;
+            for (const account of accounts) {
+                if (account instanceof PreTaxInvestmentAccount) {
+                    if (account.roth_converting.value) {
+                        if (account.roth_account == this) {
+                            extra_contributions += account.data.conversions[idx];
+                        }
+                    }
+                }
+            }
+            if (extra_contributions != 0) {
+                this.data.contributions[idx] += extra_contributions;
+                for (let idx2 = idx; idx2 < this.data.contributions.length; ++idx2) {
+                    this.data.total_contributions[idx2] += extra_contributions;
+                }
+            }
+
+            if (this.__table_body != null) {
+                this.__table_body.children[idx].children[1].innerText = USDollar.format(this.data.total_contributions[idx]);
+            }
+
+            super.update_value(idx);
         }
 
         add() {
@@ -3556,9 +3634,7 @@
             account.update_contributions();
         }
         WithdrawalStrategy.update_ages();
-        for (const obj of WithdrawalStrategy.withdrawalOrder) {
-            WithdrawalStrategy.update_values(obj.account);
-        }
+        WithdrawalStrategy.update_values();
         Dashboard.update_ages();
     });
 
@@ -3568,9 +3644,7 @@
             account.update_contributions();
         }
         WithdrawalStrategy.update_ages();
-        for (const obj of WithdrawalStrategy.withdrawalOrder) {
-            WithdrawalStrategy.update_values(obj.account);
-        }
+        WithdrawalStrategy.update_values();
         Dashboard.update_ages();
     });
 
@@ -3580,9 +3654,7 @@
             account.update_contributions();
         }
         WithdrawalStrategy.update_ages();
-        for (const obj of WithdrawalStrategy.withdrawalOrder) {
-            WithdrawalStrategy.update_values(obj.account);
-        }
+        WithdrawalStrategy.update_values();
         Dashboard.update_ages();
     });
 
@@ -3594,6 +3666,7 @@
     global_info.expenses.subscribe((value) => {
         ContributionStrategy.update_expenses();
         WithdrawalStrategy.update_expenses();
+        WithdrawalStrategy.update_values();
         Dashboard.update_expenses();
     });
 
