@@ -77,7 +77,7 @@ const articles = [
     ),
     new Article(
         "The (Lack Of) Power of Retirement Accounts",
-        "A look into how accounts like the 401K is a sweeter deal than otherwise expected",
+        "A look into how accounts like the 401K is a not as great a deal than otherwise expected",
         "the_power_of_retirement_accounts.html",
         new Set(["Finance"]),
         new Date(2024, 3, 1)
