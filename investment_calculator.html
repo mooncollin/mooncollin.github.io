@@ -752,17 +752,22 @@
             return amount * 12;
         }
 
-        static adjusted_gross_income(year = 0) {
+        static adjusted_gross_income(year = 0, stop_account = null) {
             if ((year + global_info.age.value) >= global_info.retirement_age.value) {
                 let amount = 0;
-                for (const account of accounts) {
+                for (const obj of WithdrawalStrategy.withdrawalOrder) {
+                    const account = obj.account;
+                    if (account === stop_account) {
+                        break;
+                    }
                     if (account.enabled.value) {
                         if (account instanceof PreTaxInvestmentAccount) {
                             amount += account.data.withdrawals[year];
                         }
                         else if (account instanceof SocialSecurity)
                         {
-
+                            // We count social security differently
+                            // than normal annuities.
                         }
                         else if (account instanceof Annuity) {
                             amount += account.data.withdrawals[year];
@@ -796,12 +801,12 @@
             return round_dollars(TaxStrategy.fed_deduction.value * Math.pow(1 + global_info.inflation.value / 100, year));
         }
 
-        static fed_taxable(year = 0) {
-            return Math.max(0, TaxStrategy.fed_taxable2(year));
+        static fed_taxable(year = 0, stop_account = null) {
+            return Math.max(0, TaxStrategy.fed_taxable2(year, stop_account));
         }
 
-        static fed_taxable2(year = 0) {
-            return round_dollars(TaxStrategy.adjusted_gross_income(year) + TaxStrategy.ss_taxable(year) - TaxStrategy.fed_deduction_value(year));
+        static fed_taxable2(year = 0, stop_account = null) {
+            return round_dollars(TaxStrategy.adjusted_gross_income(year, stop_account) + TaxStrategy.ss_taxable(year) - TaxStrategy.fed_deduction_value(year));
         }
 
         static ss_taxable(year = 0) {
@@ -815,7 +820,7 @@
             }
             ss_withdrawals *= 12;
 
-            const combined_income = TaxStrategy.adjusted_gross_income() + ss_withdrawals / 2;
+            const combined_income = TaxStrategy.adjusted_gross_income(year) + ss_withdrawals / 2;
             const low_bracket = (federal_income_tax_individual != null && federal_income_tax_individual.enabled.value) ? 25000 : 34000;
             const high_bracket = (federal_income_tax_individual != null && federal_income_tax_individual.enabled.value) ? 32000 : 44000;
 
@@ -899,15 +904,19 @@
             for (const tax of taxes) {
                 if (tax.enabled.value) {
                     if (federal_income_tax_individual != null) {
-                        if (tax.id === federal_income_tax_individual.id) {
-                            found_tax = federal_income_tax_individual;
-                            break;
+                        if (federal_income_tax_individual.enabled.value) {
+                            if (tax.id === federal_income_tax_individual.id) {
+                                found_tax = federal_income_tax_individual;
+                                break;
+                            }
                         }
                     }
                     if (federal_income_tax_married != null) {
-                        if (tax.id === federal_income_tax_married.id) {
-                            found_tax = federal_income_tax_married;
-                            break;
+                        if (federal_income_tax_married.enabled.value) {
+                            if (tax.id === federal_income_tax_married.id) {
+                                found_tax = federal_income_tax_married;
+                                break;
+                            }
                         }
                     }
                 }
@@ -1405,6 +1414,11 @@
                 let rmds = new Set();
                 for (const obj of WithdrawalStrategy.withdrawalOrder) {
                     const account = obj.account;
+                    account.data.withdrawals[idx] = 0;
+                }
+
+                for (const obj of WithdrawalStrategy.withdrawalOrder) {
+                    const account = obj.account;
                     if (account.enabled.value) {
                         if (age >= global_info.retirement_age.value) {
                             const withdrawal = account.calculate_withdrawal(expenses_left, idx);
@@ -1767,6 +1781,17 @@
             }
         }
 
+        static get_fed_special_tax() {
+            if (federal_income_tax_individual.enabled.value) {
+                return federal_income_tax_individual;
+            }
+            else if (federal_income_tax_married.enable.value) {
+                return federal_income_tax_married;
+            }
+
+            return null;
+        }
+
         static add_federal_income_tax_individual() {
             federal_income_tax_individual = new TaxTable("Federal Income (Individual)", taxable_income_source);
             federal_income_tax_individual.__special_id = TaxTable.federal_income_tax_individual_special_id;
@@ -2098,6 +2123,18 @@
             }
 
             return rate;
+        }
+
+        calculate_amount_to_bracket(current_amount, rate, year = 0) {
+            const inflation = Math.pow(1 + global_info.inflation.value / 100, year);
+            for (const [idx, bracket] of enumerate(this.brackets)) {
+                if (bracket.rate.value > rate) {
+                    break;
+                }
+                current_amount -= bracket.max.value * inflation;
+            }
+
+            return -current_amount;
         }
     }
 
@@ -2520,7 +2557,7 @@
                 this.update_values();
             });
 
-            this.withdrawalChoice.subscribe((value) => {
+            this.withdrawalChoiceId = this.withdrawalChoice.subscribe((value) => {
                 if (this.__table_body != null) {
                     const withdrawalInput = document.getElementById(`Monthly Withdrawal-${this.id}`).parentElement.parentElement;
                     const maxWithdrawalInput = document.getElementById(`Monthly Max Withdrawal-${this.id}`).parentElement.parentElement;
@@ -2702,15 +2739,15 @@
                 </div>
                 <div class="card-body" id="Withdrawal-Body-${this.id}" style="${this.enabled.value ? "" : "pointer-events: none; filter: brightness(90%);"}">
                     <div class="small"><i>${this.config_name()}</i></div>
-                    <div class="form-check form-check-inline">
+                    <div class="form-check form-check-inline" id="Withdrawal-Fixed-${this.id}">
                         <input class="form-check-input" type="radio" name="Withdrawal-Options-${this.id}" id="Withdrawal-Option-Fixed-${this.id}" value="0">
                         <label class="form-check-label" for="Withdrawal-Option-Fixed-${this.id}">Fixed Amount</label>
                     </div>
-                    <div class="form-check form-check-inline">
+                    <div class="form-check form-check-inline" id="Withdrawal-Percentage-${this.id}">
                         <input class="form-check-input" type="radio" name="Withdrawal-Options-${this.id}" id="Withdrawal-Option-Percentage-${this.id}" value="1">
                         <label class="form-check-label" for="Withdrawal-Option-Percentage-${this.id}">Percentage</label>
                     </div>
-                    <div class="form-check form-check-inline">
+                    <div class="form-check form-check-inline" id="Withdrawal-Expense-${this.id}">
                         <input class="form-check-input" type="radio" name="Withdrawal-Options-${this.id}" id="Withdrawal-Option-Expense-${this.id}" value="2">
                         <label class="form-check-label" for="Withdrawal-Option-Expense-${this.id}">Leftover Expenses</label>
                     </div>
@@ -2973,6 +3010,11 @@
             this.roth_converting = new boolean_property(false);
             this.roth_account = null;
             this.roth_name_subs = [];
+            this.withdrawalTaxBracket = new float_property(0);
+
+            this.withdrawalTaxBracket.subscribe((value) => {
+                WithdrawalStrategy.update_values();
+            });
 
             this.roth_converting.subscribe((value) => {
                 const input = document.getElementById(`Roth Accounts-${this.id}`);
@@ -2991,6 +3033,66 @@
                     previous_roth.update_contributions();
                     previous_roth.update_values();
                 }
+            });
+
+            this.withdrawalChoice.unsubscribe(this.withdrawalChoiceId);
+
+            this.withdrawalChoiceId = this.withdrawalChoice.subscribe((value) => {
+                if (this.__table_body != null) {
+                    const withdrawalInput = document.getElementById(`Monthly Withdrawal-${this.id}`).parentElement.parentElement;
+                    const maxWithdrawalInput = document.getElementById(`Monthly Max Withdrawal-${this.id}`).parentElement.parentElement;
+                    const percentageInput = document.getElementById(`Percentage of Expenses-${this.id}`).parentElement.parentElement;
+                    const taxBracketInput = document.getElementById(`Max Federal Tax Bracket-${this.id}`).parentElement.parentElement;
+
+                    if (withdrawalInput != null && maxWithdrawalInput != null && percentageInput != null && taxBracketInput != null) {
+                        if (value == 0) {
+                            withdrawalInput.hidden = false;
+                            percentageInput.hidden = true;
+                            maxWithdrawalInput.hidden = true;
+                            taxBracketInput.hidden = true;
+
+                            const radio = document.getElementById(`Withdrawal-Option-Fixed-${this.id}`);
+                            if (!radio.checked) {
+                                radio.checked = true;
+                            }
+                        }
+                        else if (value == 1) {
+                            withdrawalInput.hidden = true;
+                            percentageInput.hidden = false;
+                            maxWithdrawalInput.hidden = true;
+                            taxBracketInput.hidden = true;
+
+                            const radio = document.getElementById(`Withdrawal-Option-Percentage-${this.id}`);
+                            if (!radio.checked) {
+                                radio.checked = true;
+                            }
+                        }
+                        else if (value == 2) {
+                            withdrawalInput.hidden = true;
+                            percentageInput.hidden = true;
+                            maxWithdrawalInput.hidden = false;
+                            taxBracketInput.hidden = true;
+
+                            const radio = document.getElementById(`Withdrawal-Option-Expense-${this.id}`);
+                            if (!radio.checked) {
+                                radio.checked = true;
+                            }
+                        }
+                        else if (value == 3) {
+                            withdrawalInput.hidden = true;
+                            percentageInput.hidden = true;
+                            maxWithdrawalInput.hidden = true;
+                            taxBracketInput.hidden = false;
+
+                            const radio = document.getElementById(`Withdrawal-Option-TaxBracket-${this.id}`);
+                            if (!radio.checked) {
+                                radio.checked = true;
+                            }
+                        }
+                    }
+                }
+
+                this.update_values();
             });
         }
 
@@ -3017,6 +3119,35 @@
         get_withdrawal_template() {
             const template = super.get_withdrawal_template();
             const card_body = template.getElementsByClassName("card-body")[0];
+            const last_option = card_body.querySelector(`#Withdrawal-Expense-${this.id}`);
+
+            const tax_bracket_container = parseHTML(`
+            <div class="form-check form-check-inline" id="Withdrawal-TaxBracket-${this.id}">
+                <input class="form-check-input" type="radio" name="Withdrawal-Options-${this.id}" id="Withdrawal-Option-TaxBracket-${this.id}" value="3">
+                <label class="form-check-label" for="Withdrawal-Option-TaxBracket-${this.id}">Max Tax Bracket</label>
+            </div>
+            `);
+
+            const choices = tax_bracket_container.getElementsByTagName("input");
+            for (const choice of choices) {
+                choice.addEventListener('change', (e) => {
+                    this.withdrawalChoice.set_value(e.target.value);
+                });
+            }
+            if (this.withdrawalChoice.value >= 3) {
+                choices[this.withdrawalChoice.value - 3].checked = true;
+            }
+
+            last_option.after(tax_bracket_container);
+
+            const taxBracketWithdrawalInput = this.generate_input_template(
+                "Max Federal Tax Bracket",
+                {step: "any", min: 0},
+                this.withdrawalTaxBracket
+            );
+            taxBracketWithdrawalInput.hidden = this.withdrawalChoice.value != 3;
+
+            card_body.appendChild(taxBracketWithdrawalInput);
 
             const roth = document.createElement("div");
             roth.appendChild(this.generate_input_template(
@@ -3160,7 +3291,61 @@
                 return 0;
             }
 
-            let amount = super.calculate_withdrawal(expense, idx);
+            let amount = 0;
+            if (this.withdrawalChoice.value == 3) {
+                const previous_withdrawal = this.data.withdrawals[idx];
+                let previous_ss_calc = 0;
+                // Chicken and egg problem with social security tax
+                // increasing when we increase withdrawals.
+                // We will simulate withdrawing and adjust.
+                while (true) {
+                    const fed_taxable = TaxStrategy.fed_taxable(idx, this) + previous_ss_calc;
+                    const old_margin = TaxStrategy.federal_marginal_bracket(idx);
+                    const new_ss_calc = TaxStrategy.ss_taxable(idx);
+                    let current_fed_table = Tax.get_fed_special_tax();
+                    if (current_fed_table == null) {
+                        amount = expense;
+                    }
+                    else {
+                        if (this.withdrawalTaxBracket.value === 0) {
+                            amount = (TaxStrategy.fed_deduction_value(idx) - previous_ss_calc) / 12;
+                        }
+                        else {
+                            amount = current_fed_table.calculate_amount_to_bracket(fed_taxable, this.withdrawalTaxBracket.value, idx) / 12;
+                        }
+                        if (amount < 0) {
+                            amount = 0;
+                            break;
+                        }
+                        else {
+                            amount = Math.min(expense, amount);
+                            // We pretend to withdrawal, so we can see what social security does.
+                            this.data.withdrawals[idx] = amount;
+                            const new_margin = TaxStrategy.federal_marginal_bracket(idx);
+                            if (new_margin > old_margin && new_margin > this.withdrawalTaxBracket.value) {
+                                // Looks like social security bumped us up.
+                                // We'll pretend next time we get taxed that amount.
+                                previous_ss_calc = TaxStrategy.ss_taxable(idx);
+                                this.data.withdrawals[idx] = 0;
+                            }
+                            else {
+                                break;
+                            }
+                        }
+                    }
+                }
+                this.data.withdrawals[idx] = previous_withdrawal;
+                if (idx === 0) {
+                    amount = Math.min(amount, this.balance.value / 12);
+                }
+                else {
+                    amount = Math.min(amount, this.data.values[idx - 1] / 12);
+                }
+            }
+            else {
+                amount = super.calculate_withdrawal(expense, idx);
+            }
+            
             const rmd = PreTaxInvestmentAccount.RMD_table[Math.min(120, age)];
             if (rmd != undefined) {
                 if (idx === 0) {
@@ -3168,7 +3353,7 @@
                 }
                 return Math.max(amount, (this.data.values[idx - 1] / rmd) / 12);
             }
-            
+         
             return amount;
         }
 
