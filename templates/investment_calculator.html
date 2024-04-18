@@ -3371,8 +3371,8 @@
             const age = global_info.data.ages[idx];
 
             const contribution = age >= global_info.retirement_age.value 
-                                     ? this.contribution.value
-                                     : 0;
+                                     ? 0
+                                     : this.contribution.value;
             
             if (idx === 0) {
                 this.data.contributions[idx] = contribution * (12 - now.getMonth());;
