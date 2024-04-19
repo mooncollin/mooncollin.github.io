@@ -2563,6 +2563,7 @@
                     break;
                 case 2:
                     this.maxWithdrawal.set_value(obj.withdrawal);
+                    break;
             }
         }
 
@@ -2661,7 +2662,9 @@
                     this.withdrawalChoice.set_value(e.target.value);
                 });
             }
-            choices[this.withdrawalChoice.value].checked = true;
+            if (this.withdrawalChoice.value <= 2) {
+                choices[this.withdrawalChoice.value].checked = true;
+            }
 
             const withdrawalInput = this.generate_input_template(
                 "Monthly Withdrawal",
@@ -3001,6 +3004,11 @@
             else {
                 obj.roth_account = this.roth_account.id;
             }
+            switch (obj.withdrawalChoice) {
+                case 3:
+                    obj.withdrawal = this.withdrawalTaxBracket.value;
+                    break;
+            }
 
             return obj;
         }
@@ -3009,6 +3017,11 @@
             super.deserialize(obj);
             this.roth_converting.set_value(obj.roth_converting);
             this.roth_account = obj.translate_account(obj.roth_account);
+            switch (this.withdrawalChoice.value) {
+                case 3:
+                    this.withdrawalTaxBracket.set_value(obj.withdrawal);
+                    break;
+            }
         }
 
         get_withdrawal_template() {
