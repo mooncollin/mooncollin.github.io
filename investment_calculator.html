@@ -3307,12 +3307,8 @@
             let amount = 0;
             if (this.withdrawalChoice.value == 3) {
                 const previous_withdrawal = this.data.withdrawals[idx];
-                let previous_ss_calc = 0;
-                // Chicken and egg problem with social security tax
-                // increasing when we increase withdrawals.
-                // We will simulate withdrawing and adjust.
                 while (true) {
-                    const fed_taxable = TaxStrategy.fed_taxable(idx, this) + previous_ss_calc;
+                    const fed_taxable = TaxStrategy.fed_taxable2(idx, this);
                     const old_margin = TaxStrategy.federal_marginal_bracket(idx);
                     let current_fed_table = Tax.get_fed_special_tax();
                     if (current_fed_table == null) {
@@ -3320,7 +3316,12 @@
                     }
                     else {
                         if (this.withdrawalTaxBracket.value === 0) {
-                            amount = (TaxStrategy.fed_deduction_value(idx) - previous_ss_calc) / 12;
+                            if (fed_taxable < 0) {
+                                amount = -fed_taxable / 12;
+                            }
+                            else {
+                                amount = 0;
+                            }
                         }
                         else {
                             amount = current_fed_table.calculate_amount_to_bracket(fed_taxable, this.withdrawalTaxBracket.value, idx) / 12;
@@ -3331,18 +3332,20 @@
                         }
                         else {
                             amount = Math.min(expense, amount);
-                            // We pretend to withdrawal, so we can see what social security does.
-                            this.data.withdrawals[idx] = amount;
-                            const new_margin = TaxStrategy.federal_marginal_bracket(idx);
-                            if (new_margin > old_margin && new_margin > this.withdrawalTaxBracket.value) {
-                                // Looks like social security bumped us up.
-                                // We'll pretend next time we get taxed that amount.
-                                previous_ss_calc = TaxStrategy.ss_taxable(idx);
-                                this.data.withdrawals[idx] = 0;
+                            if (accounts.find(a => a instanceof SocialSecurity)) {
+                                // We pretend to withdrawal, so we can see what social security does.
+                                while (true) {
+                                    this.data.withdrawals[idx] = amount;
+                                    const new_margin = TaxStrategy.federal_marginal_bracket(idx);
+                                    if (new_margin > old_margin && new_margin > this.withdrawalTaxBracket.value) {
+                                        --amount;
+                                    }
+                                    else {
+                                        break;
+                                    }
+                                }
                             }
-                            else {
-                                break;
-                            }
+                            break;
                         }
                     }
                 }
@@ -3623,7 +3626,7 @@
                 }
             }
 
-            return current_withdrawals;
+            return Math.max(0, current_withdrawals);
         }
     }
 
@@ -3657,15 +3660,35 @@
         }
 
         calculate_withdrawal(expense, idx) {
+            let last_four_years_of_conversions = 0;
+            for (const obj of WithdrawalStrategy.withdrawalOrder) {
+                const account = obj.account;
+                if (account instanceof PreTaxInvestmentAccount) {
+                    if (account.enabled.value) {
+                        if (account.roth_converting.value) {
+                            if (account.roth_account == this) {
+                                last_four_years_of_conversions += account.data.conversions.slice(Math.max(0, idx - 4), idx).reduce((sum, rhs) => sum + rhs, 0);
+                            }
+                        }
+                    }
+                }
+            }
+
             const age = global_info.data.ages[idx];
             if (age < 60) {
                 const contributions_up_to_this_point = this.data.contributions.slice(0, idx).reduce((sum, rhs) => sum + rhs, 0);
-                const withdrawals_up_to_this_point   = this.data.withdrawals.slice(0, idx).reduce((sum, rhs) => sum + rhs, 0);
-                const principal_available = contributions_up_to_this_point - withdrawals_up_to_this_point;
-                return Math.min(expense, Math.max(0, principal_available));
+                const withdrawals_up_to_this_point   = this.data.withdrawals.slice(0, idx).reduce((sum, rhs) => sum + rhs, 0) * 12;
+                const principal_available = contributions_up_to_this_point - withdrawals_up_to_this_point - last_four_years_of_conversions;
+                return Math.min(expense, Math.max(0, principal_available) / 12);
             }
+
+            let amount = super.calculate_withdrawal(expense, idx);
             
-            return super.calculate_withdrawal(expense, idx);
+            if (idx != 0) {
+                return Math.max(0, Math.min((this.data.values[idx - 1] - last_four_years_of_conversions) / 12, amount));
+            }
+
+            return amount;
         }
 
         update_value(idx) {
