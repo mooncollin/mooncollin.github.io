@@ -81,6 +81,14 @@ const articles = [
         "the_power_of_retirement_accounts.html",
         new Set(["Finance"]),
         new Date(2024, 3, 1)
+    ),
+    new Article(
+        "Asking An AI: Money Market Funds",
+        "A serious of discussions with ChatGPT on Money Market Funds",
+        "ai_mmf.html",
+        new Set(["Finance"]),
+        new Date(2024, 10, 8),
+        "images/openai-logomark.png"
     )
 ];
 
