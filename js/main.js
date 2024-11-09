@@ -84,7 +84,7 @@ const articles = [
     ),
     new Article(
         "Asking An AI: Money Market Funds",
-        "A serious of discussions with ChatGPT on Money Market Funds",
+        "A series of discussions with ChatGPT on Money Market Funds",
         "ai_mmf.html",
         new Set(["Finance"]),
         new Date(2024, 10, 8),
